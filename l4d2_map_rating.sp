@@ -21,56 +21,6 @@ public OnPluginStart()
   SQL_TConnect(TConnect, "storage-local");
 }
 
-public TConnect(Handle:owner, Handle:hndl, const String:error[], any:data)
-{
-  if (hndl == INVALID_HANDLE)
-  {
-    SetFailState("error: %s", error);
-  }
-  
-  g_hDB = hndl;
-  
-  /* 
-CREATE  TABLE  IF NOT EXISTS 'maps' ('map' VARCHAR PRIMARY KEY  NOT NULL , 'time' DATETIME DEFAULT CURRENT_TIMESTAMP, 'loaded' BOOL) 
-*/
-  SQL_LockDatabase(g_hDB);
-  SQL_FastQuery(g_hDB, "CREATE TABLE maps (map varchar(255) NOT NULL,time DATETIME DEFAULT CURRENT_TIMESTAMP,loaded BOOL,PRIMARY KEY (map))");
-  SQL_UnlockDatabase(g_hDB);
-  
-  /* 
-INSERT OR REPLACE INTO 'maps' ('map','loaded') VALUES ('d1_trainstation_01' , 1) 
-*/
-  new String:buffer[256];
-  g_hStatement = SQL_PrepareQuery(g_hDB, "REPLACE INTO maps (map,loaded) VALUES (? , ?)", buffer, sizeof(buffer));
-  
-  if (g_hStatement == INVALID_HANDLE)
-  {
-    PrintToServer("g_hStatement error: %s", buffer); 
-  }
-  
-  //PrintToServer("connect"); 
-  /* SELECT * FROM maps ORDER BY time DESC LIMIT 0 , 2*/
-  SQL_TQuery(g_hDB, TQuery, "SELECT map, loaded FROM maps ORDER BY time DESC LIMIT 0 , 2");
-}
-
-public TQuery(Handle:owner, Handle:hndl, const String:error[], any:data)
-{
-  new String:buffer[MAX_NAME_LENGTH], loaded;
-  while (SQL_FetchRow(hndl))
-  {
-    SQL_FetchString(hndl, 0, buffer, sizeof(buffer));
-    loaded = SQL_FetchInt(hndl, 1);
-    //PrintToServer("buffer %s %i", buffer, loaded); 
-    
-    if (loaded)
-    {
-      ServerCommand("changelevel %s", buffer);
-      LogMessage("[CrashMap] Changed map to %s after crash!", buffer);
-      break;
-    }
-  }
-}
-
 public OnMapStart()
 {
   if (g_hDB == INVALID_HANDLE)
@@ -91,19 +41,34 @@ public OnMapStart()
   //PrintToServer("insert %s", query); 
 }
 
-public Action:update(Handle:timer)
+public Action:ClientPostAdminCheck(Handle:timer, any:client)
 {
-  new String:query[256];
-  GetCurrentMap(query, sizeof(query));
-  SQL_BindParamString(g_hStatement, 0, query, false);
-  SQL_BindParamInt(g_hStatement, 1, 1);
-  
-  SQL_LockDatabase(g_hDB);
-  SQL_Execute(g_hStatement);
-  SQL_UnlockDatabase(g_hDB);
-  //PrintToServer("update %s", query); 
-} 
+  if (!IsClientInGame(client))
+  {
+    if (PostAdminCheckRetryCounter[client]++ < 10)
+    {
+      CreateTimer(3.0, ClientPostAdminCheck, client);
+    }
 
+    return;
+  }
+
+  StartRankChangeCheck(client);
+
+  decl String:SteamID[MAX_LINE_WIDTH];
+  GetClientRankAuthString(client, SteamID, sizeof(SteamID));
+
+  CheckPlayerDB(client);
+
+  TimerPoints[client] = 0;
+  TimerKills[client] = 0;
+  TimerHeadshots[client] = 0;
+
+  CreateTimer(10.0, RankConnect, client);
+  CreateTimer(15.0, AnnounceConnect, client);
+  
+  AnnouncePlayerConnect(client);
+}
 
 // Functions
 
@@ -146,8 +111,6 @@ CheckPlayerDB(client)
   decl String:query[512];
   Format(query, sizeof(query), "SELECT steamid FROM %splayers WHERE steamid = '%s'", DbPrefix, SteamID);
   SQL_TQuery(db, InsertPlayerDB, query, client);
-
-  ReadClientRankMuteSteamID(client, SteamID);
 }
 
 public InsertPlayerDB(Handle:owner, Handle:hndl, const String:error[], any:client)
