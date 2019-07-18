@@ -46,11 +46,8 @@ public OnPluginStart()
 	CreateConVar("l4d_bunnyhop_version", PLUGIN_VERSION, "version of bunnyhop+", FCVAR_NOTIFY);
 
 	hMode = CreateConVar("l4d_bunnyhop_mode", "1.0", "Plugin mode: (0)disabled (1)auto-bunnyhop (2)manual bunnyhop training", FCVAR_NOTIFY,true,0.0,true,2.0);
-
 	hMultiplier = CreateConVar("l4d_bunnyhop_multiplier","50.0", "Multiplier: set the value multiplied to the lateral velocity gain for each successful bunnyhop.", FCVAR_NOTIFY,true,0.0,true,200.0);
-
 	hLimit = CreateConVar("l4d_bunnyhop_limit", "300.0", "Limit: set player speed value at which lateral velocity no longer multiplies lateral velocity.", FCVAR_NOTIFY,true,0.0,true,500.0);
-
 	hOffset = CreateConVar("l4d_bunnyhop_delay", "0", "Cue offset: for manual mode, set integer value for how early the cue is to be heard. Higher values mean earlier cues.", FCVAR_NOTIFY,true,0.0,true,5.0);
 
 	for (int i = 0; i < MAXPLAYERS; i++){
@@ -96,7 +93,7 @@ public Action:Check(Handle:Timer, any:userid)
 
 public Action:Ontuisets(client, args)
 {
-	if (OA_AT && !GetUserFlagBits(client))
+	if (OA_AT && client!=0 && !GetUserFlagBits(client))
 	{
 		ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 		return Action:0;
@@ -108,7 +105,7 @@ public Action:Ontuisets(client, args)
 
 public Action:Offtuisets(client, args)
 {
-	if (OA_AT && !GetUserFlagBits(client))
+	if (OA_AT && client!=0 && !GetUserFlagBits(client))
 	{
 		ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 		return Action:0;
@@ -120,7 +117,7 @@ public Action:Offtuisets(client, args)
 
 public Action:Onhwsets(client, args)
 {
-	if (OA_AT && !GetUserFlagBits(client))
+	if (OA_AT && client!=0 && !GetUserFlagBits(client))
 	{
 		ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 		return Action:0;
@@ -132,7 +129,7 @@ public Action:Onhwsets(client, args)
 
 public Action:Offhwsets(client, args)
 {
-	if (OA_AT && !GetUserFlagBits(client))
+	if (OA_AT && client!=0 && !GetUserFlagBits(client))
 	{
 		ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 		return Action:0;

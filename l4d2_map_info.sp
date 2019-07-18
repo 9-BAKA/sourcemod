@@ -1,24 +1,42 @@
 #include <sourcemod>
 #include <sdktools>
 
-public Plugin:myinfo = 
-{
-	name = "地图信息",
-	author = "BAKA",
-	description = "地图信息",
-	version = "1.0",
-	url = "<- URL ->"
-}
+#define DB_CONF_NAME "l4dmap"
 
 bool info_exist;
 char EN_name[64];
 char CHI_name[64];
 char map_info[5000];
 
+Handle db = INVALID_HANDLE;
+
+public Plugin:myinfo = 
+{
+	name = "地图信息sql版",
+	author = "BAKA",
+	description = "地图信息sql版",
+	version = "1.0",
+	url = "https://baka.cirno.cn"
+}
+
 public void OnPluginStart()
 {
     RegConsoleCmd("sm_mapinfo", MapInfo, "获取当前地图信息");
     RegConsoleCmd("sm_mapname", MapName, "获取当前地图名字");
+}
+
+public OnConfigsExecuted()
+{
+  GetConVarString(cvar_DbPrefix, DbPrefix, sizeof(DbPrefix));
+
+  // Init MySQL connections
+  if (!ConnectDB())
+  {
+    SetFailState("Connecting to database failed. Read error log for further details.");
+    return;
+  }
+	
+	ReadDb();
 }
 
 public void OnMapStart()
@@ -32,6 +50,44 @@ public void OnMapStart()
     {
         PrintToChatAll("当前地图暂无简介");
     }
+}
+
+bool:ConnectDB()
+{
+  if (db != INVALID_HANDLE)
+    return true;
+
+  if (SQL_CheckConfig(DB_CONF_NAME))
+  {
+    new String:Error[256];
+    db = SQL_Connect(DB_CONF_NAME, true, Error, sizeof(Error));
+
+    if (db == INVALID_HANDLE)
+    {
+      LogError("Failed to connect to database: %s", Error);
+      return false;
+    }
+    else if (!SQL_FastQuery(db, "SET NAMES 'utf8'"))
+    {
+      if (SQL_GetError(db, Error, sizeof(Error)))
+        LogError("Failed to update encoding to UTF8: %s", Error);
+      else
+        LogError("Failed to update encoding to UTF8: unknown");
+    }
+
+    if (!CheckDatabaseValidity(DbPrefix))
+    {
+      LogError("Database is missing required table or tables.");
+      return false;
+    }
+  }
+  else
+  {
+    LogError("Databases.cfg missing '%s' entry!", DB_CONF_NAME);
+    return false;
+  }
+
+  return true;
 }
 
 public Action MapInfo(int client, int args)
@@ -48,33 +104,13 @@ public Action MapInfo(int client, int args)
 
 public bool GetMapInfo()
 {
-    char sPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, sPath, sizeof(sPath), "data/mapinfo.txt");
-    if( !FileExists(sPath) )
-        return false;
-
     char sMap[64];
     GetCurrentMap(sMap, sizeof(sMap));
-    if ( strcmp(EN_name, sMap) == 0 )
-    {
-        return true;
-    }
+    
+		char query[256];
+		Format(query, sizeof(query), "SELECT COUNT(*) FROM l4d2_chapters WHERE  = %s", sMap);
 
-    KeyValues hFile = new KeyValues("crash");
-    hFile.ImportFromFile(sPath);
-
-    if( hFile.JumpToKey(sMap, false) )
-    {
-        KvGetString(hFile, "中文名", CHI_name, 64, "");
-        KvGetString(hFile, "建图代码", EN_name, 64, "");
-        KvGetString(hFile, "简介", map_info, 5000, "");
-    }
-    else
-    {
-        return false
-    }
-
-    delete hFile;
+		 SQL_Query(db, query);
 
     return true;
 }
