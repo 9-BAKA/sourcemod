@@ -1,5 +1,5 @@
 [l4d_rmc.sp]
-Age=1319404171
+Age=1326716168
 [teleport_1.11.sp]
 Age=1293255586
 [teleport.sp]
@@ -21,7 +21,7 @@ Age=1293785760
 [sv_steamgroup_fixer.sp]
 Age=1294208136
 [l4d2_more_medical.sp]
-Age=1294432118
+Age=1324523227
 [l4d2_ammo_set.sp]
 Age=1318389948
 [infectedspawn.sp]
@@ -39,7 +39,7 @@ Age=1299352208
 [l4d_bunnyhop+.sp]
 Age=1313376039
 [R_autoset.sp]
-Age=1318851217
+Age=1324523641
 [R_autoset2.sp]
 Age=1299618539
 [map_info.sp]
@@ -99,9 +99,9 @@ Age=1318390297
 [L4D2_Lucky_Drawv1.1.sp]
 Age=1318549524
 [L4D2_Lucky_Drawv.sp]
-Age=1321700059
+Age=1325249452
 [R_AutoIS.sp]
-Age=1319347731
+Age=1326720042
 [survivor_mvp.sp]
 Age=1319898651
 [tankReport.sp]
@@ -111,7 +111,7 @@ Age=1323178728
 [l4d2_info_hud.sp]
 Age=1323181258
 [l4d2_map_info.sp]
-Age=1302294762
+Age=1323740902
 [l4d2_health_return.sp]
 Age=1323733702
 [l4d2_model_precacher.sp]
@@ -119,4 +119,20 @@ Age=1323471613
 [l4d_fyzb_en_v20.sp]
 Age=1323733379
 [l4d2_kill_mvp.sp]
-Age=1323734433
+Age=1323735169
+[l4d2_multitanks.sp]
+Age=1325709489
+[l4d_machine.sp]
+Age=1325177339
+[sm_dev_cmds.sp]
+Age=1325175625
+[bhop_count.sp]
+Age=1326718685
+[l4d2_freeroam.sp]
+Age=1326721954
+[l4dffannounce.sp]
+Age=1326694118
+[skeetannounce.sp]
+Age=1324523919
+[UnitedRPG_V2.61x_chs.sp]
+Age=1326711954

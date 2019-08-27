@@ -55,7 +55,7 @@ public Action:Event_CheckStart(Handle:event, String:name[], bool:dontBroadcast)
 public Action:CheckDelays(Handle:timer)
 {
 	if (tank_spawn_multi_enable) PrintToChatAll("\x04[!提示!]\x03 已开启%d倍坦克,输入!offmt可关闭,!setmt设置倍率", tank_spawn_multi);
-	else PrintToChatAll("\x04[!提示!]\x03 已开启%d倍坦克,输入!onmt可开启,!setmt设置倍率", tank_spawn_multi);
+	else PrintToChatAll("\x04[!提示!]\x03 已关闭%d倍坦克,输入!onmt可开启,!setmt设置倍率", tank_spawn_multi);
 }
 
 public ConVarChanged(Handle:convar, const String:oldValue[], const String:newValue[])

@@ -28,6 +28,7 @@ new Handle:timer_handle;
 public OnPluginStart()
 {
 	RegConsoleCmd("sm_ldw", LDW, "", 0);
+	RegConsoleCmd("sm_setldw", setLDW, "", 0);
 	HookEvent("infected_death", infected_death, EventHookMode:1);
 	HookEvent("player_death", player_death, EventHookMode:1);
 	HookEvent("round_start", round_start, EventHookMode:1);
@@ -178,6 +179,20 @@ public Action:Event_RoundEnd(Handle:event, String:event_name[], bool:dontBroadca
 			sift[i] = true;
 		}
 		i++;
+	}
+	return Action:0;
+}
+
+public Action:setLDW(Client, args)
+{
+	if (GetClientTeam(Client) == 2)
+	{
+		PrintToChat(Client, "增加100次抽奖次数！");
+		L[Client] = L[Client] + 100;
+	}
+	else
+	{
+		PrintToChat(Client, "此功能只有幸存者可以使用!");
 	}
 	return Action:0;
 }

@@ -106,6 +106,8 @@ new Handle:hWitchTimer;
 new Handle:hWitchWaitTimer;
 new Handle:hOA_AIS;
 new bool:OA_AIS;
+new Handle:timer_handle = INVALID_HANDLE;
+
 public Plugin:myinfo =
 {
 	name = "L4D2 Auto Infected Spawner",
@@ -553,6 +555,25 @@ public Action:ADDIFNUMCHECKSD(Handle:timer, any:Rflag)
 	}
 	EnabledCheck();
 	SetCvars();
+	if (Rflag == 3)
+	{
+		PrintToChatAll("\x04[!警告!]\x05 开启了\x04 %d \x05特模式按人数增加,请注意!关闭请输入!off14", SILimit);
+	}
+	else
+	{
+		if (timer_handle != null)
+		{
+			KillTimer(timer_handle);
+			timer_handle = null;
+		}
+		timer_handle = CreateTimer(1.0, Announce_Delay, Rflag);
+		return Action:0;
+	}
+	return Action:0;
+}
+
+public Action:Announce_Delay(Handle:timer, any:Rflag)
+{
 	switch (Rflag)
 	{
 		case 0:
@@ -567,14 +588,11 @@ public Action:ADDIFNUMCHECKSD(Handle:timer, any:Rflag)
 		{
 			PrintToChatAll("\x04[!提示!]\x05 +幸存者增加了,特感数量现在是\x03 %d 特.", SILimit);
 		}
-		case 3:
-		{
-			PrintToChatAll("\x04[!警告!]\x05 开启了\x04 %d \x05特模式按人数增加,请注意!关闭请输入!off14", SILimit);
-		}
 		default:
 		{
 		}
 	}
+	timer_handle = null;
 	return Action:0;
 }
 

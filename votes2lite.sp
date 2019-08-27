@@ -74,11 +74,7 @@ public OnPluginStart()
 	RegConsoleCmd("sm_votes", Command_Votes, "打开投票菜单");
 	RegConsoleCmd("sm_vote", Command_Votes, "打开投票菜单");
 	RegAdminCmd("sm_vote_no", Command_VotesNo, ADMFLAG_ROOT, "管理员一键否决投票");
-	//RegAdminCmd("sm_map", ChangeMap, ADMFLAG_ROOT, "更换地图");
 
-	//g_Cvar_Limits = CreateConVar("sm_votes_s", "0.60", "百分比.", 0, true, 0.05, true, 1.0);
-	//cvarFullResetOnEmpty = CreateConVar("l4d_full_reset_on_empty", "1", " 当服务器没有人的时候关闭ready插件", FCVAR_NOTIFY);
-	//VotensReadyED = CreateConVar("l4d_VotensreadyED", "0", " 启用、关闭 投票ready功能", FCVAR_NOTIFY);
 	VotensHpED = CreateConVar("l4d_VotenshpED", "1", " 启用、关闭 投票回血功能", FCVAR_NOTIFY);
 	VotensMapED = CreateConVar("l4d_VotensmapED", "1", " 启用、关闭 投票换图功能", FCVAR_NOTIFY);
 	VotensED = CreateConVar("l4d_Votens", "1", " 启用、关闭 插件", FCVAR_NOTIFY);
@@ -155,22 +151,6 @@ public OnClientPutInServer(client)
 	CreateTimer(30.0, TimerAnnounce, client);
 }
 
-/*
-public OnMapStart()
-{
-	new Handle:currentReadyMode = FindConVar("l4d_ready_enabled");
-	GetConVarString(currentReadyMode, ReadyMode, sizeof(ReadyMode));
-	
-	if (strcmp(ReadyMode, "0", false) == 0)
-	{
-		Format(Label, sizeof(Label), "开启");
-	}
-	else if (strcmp(ReadyMode, "1", false) == 0)
-	{
-		Format(Label, sizeof(Label), "关闭");
-	}
-}*/
-
 public Action:TimerAnnounce(Handle:timer, any:client)
 {
 	if (IsClientInGame(client))
@@ -180,18 +160,8 @@ public Action:Command_Votes(client, args)
 { 
 	if(GetConVarInt(VotensED) == 1)
 	{
-		//new VotensReadyE_D = GetConVarInt(VotensReadyED); 
 		new VotensHpE_D = GetConVarInt(VotensHpED); 
 		new VotensMapE_D = GetConVarInt(VotensMapED);
-		/*
-		if(VotensReadyE_D == 0)
-		{
-			VotensReady_ED = "开启";
-		}
-		else if(VotensReadyE_D == 1)
-		{
-			VotensReady_ED = "禁用";
-		}*/
 		if(VotensHpE_D == 0)
 		{
 			VotensHp_ED = "开启";
@@ -212,16 +182,6 @@ public Action:Command_Votes(client, args)
 		new Handle:menu = CreatePanel();
 		new String:Value[64];
 		SetPanelTitle(menu, "投票菜单");
-		/*
-		if (VotensReadyE_D == 0)
-		{
-			DrawPanelItem(menu, "禁用投票ready插件");
-		}
-		else if(VotensReadyE_D == 1)
-		{
-			Format(Value, sizeof(Value), "投票%s ready插件", Label);
-			DrawPanelItem(menu, Value);
-		}*/
 		if (VotensHpE_D == 0)
 		{
 			DrawPanelItem(menu, "禁用投票回血");
@@ -244,10 +204,6 @@ public Action:Command_Votes(client, args)
 		if (GetUserFlagBits(client)&ADMFLAG_ROOT || GetUserFlagBits(client)&ADMFLAG_CONVARS)
 		{
 			DrawPanelText(menu, "管理员选项");
-			/*
-			Format(Value, sizeof(Value), "%s 投票ready插件", VotensReady_ED);
-			DrawPanelItem(menu, Value);
-			*/
 			Format(Value, sizeof(Value), "%s 投票回血", VotensHp_ED);
 			DrawPanelItem(menu, Value);
 			Format(Value, sizeof(Value), "%s 投票换图", VotensMap_ED);
@@ -267,26 +223,10 @@ public Votes_Menu(Handle:menu, MenuAction:action, client, itemNum)
 {
 	if ( action == MenuAction_Select ) 
 	{
-		//new VotensReadyE_D = GetConVarInt(VotensReadyED); 
 		new VotensHpE_D = GetConVarInt(VotensHpED); 
 		new VotensMapE_D = GetConVarInt(VotensMapED);
 		switch (itemNum)
 		{
-		/*
-			case 1: 
-			{
-				if (VotensReadyE_D == 0)
-				{
-					FakeClientCommand(client,"sm_votes");
-					PrintToChat(client, "[提示] 禁用投票ready插件");
-					return ;
-				}
-				else if (VotensReadyE_D == 1)
-				{
-					FakeClientCommand(client,"votesready");
-				}
-			}
-			*/
 			case 1: 
 			{
 				if (VotensHpE_D == 0)
@@ -325,20 +265,6 @@ public Votes_Menu(Handle:menu, MenuAction:action, client, itemNum)
 			{
 				FakeClientCommand(client,"sm_votecvar");
 			}
-			/*
-			case 5: 
-			{
-				if (VotensReadyE_D == 0 && GetUserFlagBits(client)&ADMFLAG_ROOT || GetUserFlagBits(client)&ADMFLAG_CONVARS && VotensReadyE_D == 0)
-				{
-					SetConVarInt(FindConVar("l4d_VotensreadyED"), 1);
-					PrintToChatAll("\x05[提示] \x04管理员 开启投票ready插件");
-				}
-				else if (VotensReadyE_D == 1 && GetUserFlagBits(client)&ADMFLAG_ROOT || GetUserFlagBits(client)&ADMFLAG_CONVARS && VotensReadyE_D == 1)
-				{
-					SetConVarInt(FindConVar("l4d_VotensreadyED"), 0);
-					PrintToChatAll("\x05[提示] \x04管理员 禁用投票ready插件");
-				}
-			}*/
 			case 6: 
 			{
 				if (VotensHpE_D == 0 && GetUserFlagBits(client)&ADMFLAG_ROOT || GetUserFlagBits(client)&ADMFLAG_CONVARS && VotensHpE_D == 0)
@@ -369,45 +295,6 @@ public Votes_Menu(Handle:menu, MenuAction:action, client, itemNum)
 	}
 }
 
-/*
-public Action:Command_Voter(client, args)
-{
-	if(GetConVarInt(VotensED) == 1 && GetConVarInt(VotensReadyED) == 1)
-	{
-		if (IsVoteInProgress())
-		{
-			ReplyToCommand(client, "[提示] 已有投票正在进行中");
-			return Plugin_Handled;
-		}
-		if (!TestVoteDelay(client))
-		{
-			return Plugin_Handled;
-		}
-			
-		PrintToChatAll("\x05[提示] \x04%N \x03发起投票换三方服 \x05%s \x03ready插件", client, Label);
-		PrintToChatAll("\x05[提示] \x04服务器没有玩家的时候,ready插件自动关闭");
-		
-		g_voteType = voteType:ready;
-		decl String:SteamId[35];
-		GetClientAuthString(client, SteamId, sizeof(SteamId));
-		LogMessage("%N %s发起投票%s ready插件!",  client, SteamId, Label);//记录在log文件
-		
-		g_hVoteMenu = CreateMenu(Handler_VoteCallback, MenuAction:MENU_ACTIONS_ALL);
-		SetMenuTitle(g_hVoteMenu, "是否%s ready插件?",Label);
-		AddMenuItem(g_hVoteMenu, VOTE_YES, "Yes");
-		AddMenuItem(g_hVoteMenu, VOTE_NO, "No");
-	
-		SetMenuExitButton(g_hVoteMenu, false);
-		VoteMenuToAll(g_hVoteMenu, 20);		
-		return Plugin_Handled;
-	}
-	else if(GetConVarInt(VotensED) == 0 && GetConVarInt(VotensReadyED) == 0)
-	{
-		PrintToChat(client, "[提示] 禁用投票ready插件");
-	}
-	return Plugin_Handled;
-}
-*/
 public Action:Command_VoteHp(client, args)
 {
 	if(GetConVarInt(VotensED) == 1 
@@ -684,7 +571,6 @@ public DisplayVoteMapsMenu(client)
 }
 public Handler_VoteCallback(Handle:menu, MenuAction:action, param1, param2)
 {
-	//==========================
 	if(action == MenuAction_Select)
 	{
 		switch(param2)
@@ -702,9 +588,7 @@ public Handler_VoteCallback(Handle:menu, MenuAction:action, param1, param2)
 			}
 		}
 	}
-	//==========================
 	decl String:item[64], String:display[64];
-	// new Float:percent, Float:limit;
 	new votes, totalVotes;
 
 	GetMenuVoteInfo(param2, votes, totalVotes);
@@ -716,9 +600,6 @@ public Handler_VoteCallback(Handle:menu, MenuAction:action, param1, param2)
 	}
 
 	int playernum = HumanNum();
-	// percent = GetVotePercent(votes, totalVotes);
-
-	// limit = GetConVarFloat(g_Cvar_Limits);
 	
 	CheckVotes();
 	if (action == MenuAction_End)
@@ -747,24 +628,6 @@ public Handler_VoteCallback(Handle:menu, MenuAction:action, param1, param2)
 			CreateTimer(2.0, VoteEndDelay);
 			switch (g_voteType)
 			{
-			/*
-				case (voteType:ready):
-				{
-					if (strcmp(ReadyMode, "0", false) == 0 || strcmp(item, VOTE_NO) == 0 || strcmp(item, VOTE_YES) == 0 )
-					{
-						strcopy(item, sizeof(item), display);
-						ServerCommand("sv_search_key 1");
-						SetConVarInt(FindConVar("l4d_ready_enabled"), 1);
-					}
-					if (strcmp(ReadyMode, "1", false) == 0 || strcmp(item, VOTE_NO) == 0 || strcmp(item, VOTE_YES) == 0 )
-					{
-						ServerCommand("sv_search_key 1");
-						SetConVarInt(FindConVar("l4d_ready_enabled"), 0);
-					}
-					PrintToChatAll("[提示] 投票的结果为: %s.", item);
-					LogMessage("投票 %s ready通过",Label);
-				}
-				*/
 				case (voteType:hp):
 				{
 					AnyHp();
@@ -911,10 +774,7 @@ VoteMenuClose()
 	CloseHandle(g_hVoteMenu);
 	g_hVoteMenu = INVALID_HANDLE;
 }
-//Float:GetVotePercent(votes, totalVotes)
-//{
-//	return FloatDiv(float(votes),float(totalVotes));
-//}
+
 public Action Command_VotesNo(int client, int args)
 {
 	if (IsVoteInProgress())
@@ -968,37 +828,6 @@ public Action:IsNobodyConnected(Handle:timer, any:timerDisconnectTime)
 		if (IsClientConnected(i) && !IsFakeClient(i))
 			return  Plugin_Stop;
 	}
-	/*
-	SetConVarInt(FindConVar("l4d_ready_enabled"), 0);		
-	if (GetConVarBool(cvarFullResetOnEmpty))
-	{
-		SetConVarInt(FindConVar("l4d_ready_enabled"), 0);
-	}*/
 	
 	return  Plugin_Stop;
 }
-
-//public Action ChangeMap(int client, int args)
-//{
-//	int sBonusHP = 0;
-//	if (args < 1)
-//	{
-//		PrintToChat(client, "请输入正确参数\n例：!map c1m1_hotel");
-//		return Plugin_Handled;
-//	}
-//	else if (args > 1)
-//	{
-//		PrintToChat(client, "请输入正确参数\n例：!map c1m1_hotel");
-//		return Plugin_Handled;
-//	}
-//	else
-//	{
-//		char arg[MAX_NAME_LENGTH];
-//		GetCmdArg(1, arg, sizeof(arg));
-//	}
-	
-//	votesmapsname = arg;
-//	CreateTimer(5.0, Changelevel_Map);
-//	PrintToChatAll("\x03[提示] \x04 5秒后换图 \x05%s",votesmapsname);
-//	return Plugin_Continue;
-//}

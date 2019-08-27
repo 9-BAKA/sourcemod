@@ -33,6 +33,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_joingame", Jointhegame);
 	RegConsoleCmd("sm_away", Gotoaway);
 	RegConsoleCmd("sm_diannao", CreateOneBot);
+	RegConsoleCmd("sm_addbot", CreateOneBot);
 	RegConsoleCmd("sm_sinfo", Vserverinfo);
 	RegConsoleCmd("sm_bd", Bindkeyhots);
 	RegConsoleCmd("sm_rhelp", Scdescription);
@@ -100,7 +101,8 @@ public Action Jointhegame(int client, int args)
 		}
 		else
 		{
-			PrintToChat(client, "\x05[加入失败:]\x04请等待电脑被拯救后再输入!jg加入.");
+			CheatCommand(client, "sb_takecontrol");
+			PrintToChat(client, "\x05[加入成功:]\x04但由于没有存活电脑，你当前为死亡状态.");
 		}
 	}
 	else
@@ -118,14 +120,41 @@ public Action PlayerJoin(Handle timer, any client)
 	ClientCommand(client, "go_away_from_keyboard");
 }
 
+public int CheatCommand(int Client, char[] command)
+{
+	if (!Client)
+	{
+		return 0;
+	}
+	int admindata = GetUserFlagBits(Client);
+	SetUserFlagBits(Client, 16384);
+	int flags = GetCommandFlags(command);
+	SetCommandFlags(command, flags & -16385);
+	FakeClientCommand(Client, "%s", command);
+	SetCommandFlags(command, flags);
+	SetUserFlagBits(Client, admindata);
+	return 0;
+}
+
 public void OnClientDisconnect(int client)
 {
-	if (client)
+	if(!IsFakeClient(client))
+	{
+		int userid = GetClientUserId(client);
+		CreateTimer(5.0, Check, userid);
+		
+	}
+}
+
+public Action:Check(Handle:Timer, any:userid)
+{
+	new client = GetClientOfUserId(userid);
+	if(client == 0 || !IsClientConnected(client))
 	{
 		CreateTimer(1.0, DisKickClient);
 		Rmc_ChangeTeam[client] = 0;
 	}
-}
+}	
 
 public Action DisKickClient(Handle timer)
 {

@@ -308,7 +308,8 @@ public Action:Event_WeaponFire(Handle:event, const String:name[], bool:dontBroad
 			Throwing[client] = 0;
 			if (StrEqual(weapon, "pipe_bomb") || StrEqual(weapon, "vomitjar") || StrEqual(weapon, "molotov"))
 			{
-				Throwing[client] = 1;				}
+				Throwing[client] = 1;
+			}
 			else if (StrEqual(weapon, "grenade_launcher"))
 			{
 				slot = 0;

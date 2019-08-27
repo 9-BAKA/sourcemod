@@ -260,6 +260,8 @@ public Action:Command_VotenextmapsMenu(client, args)
 		
 		SetMenuTitle(menu, "请选择地图类别");
 		AddMenuItem(menu, "-1", "刷新地图缓存");
+		AddMenuItem(menu, "-2", "刷新地图列表");
+		AddMenuItem(menu, "16", "近期新增");
 		AddMenuItem(menu, "0", "所有");
 		AddMenuItem(menu, "15", "所有-评分降序");
 		AddMenuItem(menu, "1", "坑爹图");
@@ -312,7 +314,7 @@ public CatalogChoosed(Handle:menu, MenuAction:action, client, itemNum)
 		new catalog = StringToInt(info, 10);
 		if (catalog == -1)
 		{
-			if (NeedAdmin && GetUserFlagBits(client))
+			if (!GetConVarBool(NeedAdmin) || GetUserFlagBits(client))
 			{
 				ServerCommand("update_addon_paths;mission_reload");
 				PrintToChat(client, "地图缓存已刷新");
@@ -323,6 +325,12 @@ public CatalogChoosed(Handle:menu, MenuAction:action, client, itemNum)
 				ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 				FakeClientCommand(client, "sm_mapvote");
 			}
+			return;
+		}
+		if (catalog == -2)
+		{
+			LoadMapFile();
+			PrintToChat(client, "地图列表已刷新");
 			return;
 		}
 		new Handle:mapmenu = CreateMenu(MapMenuHandler);
