@@ -110,6 +110,7 @@ DisplayInfectedMenu(client)
 	SetMenuTitle(menu, "生成感染者:");
 	AddMenuItem(menu, "common", "普通感染者");
 	AddMenuItem(menu, "hunter", "Hunter");
+	AddMenuItem(menu, "jockey", "Jockey");
 	AddMenuItem(menu, "boomer", "Boomer");
 	AddMenuItem(menu, "smoker", "Smoker");
 	AddMenuItem(menu, "charger", "Charger");

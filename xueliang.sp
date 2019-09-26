@@ -12,10 +12,10 @@ public Plugin:myinfo =
 
 public void OnPluginStart()
 {
-	RegAdminCmd("sm_xueliang", Test, ADMFLAG_ROOT, "测试权限");
+	RegAdminCmd("sm_xueliang", SetHealth, ADMFLAG_ROOT, "测试权限");
 }
 
-public Action Test(int client, int args)
+public Action SetHealth(int client, int args)
 {
 	int sBonusHP = 0;
 	if (args < 1)

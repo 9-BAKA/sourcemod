@@ -142,13 +142,12 @@ public void OnClientDisconnect(int client)
 	{
 		int userid = GetClientUserId(client);
 		CreateTimer(5.0, Check, userid);
-		
 	}
 }
 
-public Action:Check(Handle:Timer, any:userid)
+public Action Check(Handle Timer, int userid)
 {
-	new client = GetClientOfUserId(userid);
+	int client = GetClientOfUserId(userid);
 	if(client == 0 || !IsClientConnected(client))
 	{
 		CreateTimer(1.0, DisKickClient);
@@ -158,18 +157,12 @@ public Action:Check(Handle:Timer, any:userid)
 
 public Action DisKickClient(Handle timer)
 {
-	char asnus[4];
-	char aynus[4];
-	char abnus[4];
 	int playernum = 0;
 	int specnum = 0;
 	int botnum = 0;
-	Format(asnus, 3, "%i", Playernums());
-	Format(aynus, 3, "%i", Gonaways());
-	Format(abnus, 3, "%i", Botnums());
-	playernum = StringToInt(asnus, 10);
-	specnum = StringToInt(aynus, 10);
-	botnum = StringToInt(abnus, 10);
+	playernum = Playernums();
+	specnum = Gonaways();
+	botnum = Botnums();
 	KickEnable = GetConVarBool(hKickEnable);
 	if (KickEnable && playernum > 4 && botnum > specnum)
 	{
@@ -518,18 +511,12 @@ public Action CreateOneBot(int client, int agrs)
 
 public int LCreateOneBot(int client)
 {
-	char asnus[4];  //服务器非电脑人数
-	char aynus[4];  //观察者人数
-	char abnus[4];  //电脑人数
 	int playernum = 0;
 	int specnum = 0;
 	int botnum = 0;
-	Format(asnus, 3, "%i", Playernums());
-	Format(aynus, 3, "%i", Gonaways());
-	Format(abnus, 3, "%i", Botnums());
-	playernum = StringToInt(asnus, 10);
-	specnum = StringToInt(aynus, 10);
-	botnum = StringToInt(abnus, 10);
+	playernum = Playernums();
+	specnum = Gonaways();
+	botnum = Botnums();
 	if (!KickEnable || botnum < specnum || playernum < 4)
 	{
 		int survivorbot = CreateFakeClient("survivor bot");
@@ -592,9 +579,13 @@ public Action JointeamRmc(Handle timer, any client)
 {
 	if (IsClientConnected(client))
 	{
-		if (IsClientInGame(client) && !IsFakeClient(client)  && GetClientTeam(client) != 2)  // 没有自动加入游戏,bug?survivorbot算fakeclient吗?
+		if (IsClientInGame(client) && !IsFakeClient(client) && GetClientTeam(client) != 2)
 		{
-			LCreateOneBot(client);
+			int specnum = 0;
+			int botnum = 0;
+			specnum = Gonaways();
+			botnum = Botnums();
+			if (botnum <= specnum) LCreateOneBot(client);
 			CreateTimer(1.5, FirstJoin, client);
 		}
 	}

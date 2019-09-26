@@ -83,8 +83,8 @@ public OnClientDisconnect(client)
 
 public Action:Check(Handle:Timer, any:userid)
 {
-	new client = !GetClientOfUserId(userid);
-	if(client == 0 || !IsClientConnected(client))
+	new client = GetClientOfUserId(userid);
+	if(client == 0 || !IsClientConnected(client) || IsFakeClient(client))
 	{
 		PrintToServer("AutoSet重置！");
 		bBunnyhopOff[client] = true;

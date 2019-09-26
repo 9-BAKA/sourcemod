@@ -2,6 +2,9 @@
 #include <sdktools>
 #include <sdktools_functions>
 
+#define AA   1
+#define BB   2
+
 public Plugin:myinfo =
 {
 	name = "仅供测试",
@@ -18,18 +21,12 @@ public void OnPluginStart()
 
 public Action Test(int client, int args)
 {
-	char currentMap[64], nextMap[64];
-	bool isNextMap;
-	GetCmdArg(1, currentMap, sizeof(currentMap));
-	isNextMap = GetNextMap(nextMap, 64);
-	if (isNextMap)
-	{
-		PrintToServer("下一张地图 %s", nextMap);
-	}
-	else
-	{
-		PrintToServer("无下一张地图");
-	}
+	int test[5];
+	int temp = 2;
+	if (temp == AA)
+		test[temp] = 3;
+	PrintToChatAll("%d", test[0]);
+	
 	return Plugin_Continue;
 }
 

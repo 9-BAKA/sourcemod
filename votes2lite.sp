@@ -26,6 +26,8 @@ new String:EN_name_total[1000][64];
 new String:CHI_name_total[1000][64];
 new String:EN_name[20][500][64];
 new String:CHI_name[20][500][64];
+new bool:Map_exist_total[1000];
+new bool:Map_exist[20][500];
 new String:kickplayer[MAX_NAME_LENGTH];
 new String:kickplayername[MAX_NAME_LENGTH];
 new String:votesmaps[MAX_NAME_LENGTH];
@@ -102,12 +104,18 @@ LoadMapFile()
 			KvGetString(hFile, "中文名", CHI_name_total[total], 64, "");
 			KvGetString(hFile, "建图代码", EN_name_total[total], 64, "");
 			KvGetString(hFile, "类别", catalog, 10, "");
+			char displayName[256];
+			FindMapResult findmap = FindMap(EN_name_total[total], displayName, 256);
+			if (findmap == FindMap_Found) Map_exist_total[total] = true;
+			else Map_exist_total[total] = false;
 			total++;
 			catalogInt = StringToInt(catalog, 10);
 			if (catalogInt)
 			{
 				KvGetString(hFile, "中文名", CHI_name[catalogInt][pos[catalogInt]], 64, "");
 				KvGetString(hFile, "建图代码", EN_name[catalogInt][pos[catalogInt]], 64, "");
+				if (findmap == FindMap_Found) Map_exist[catalogInt][pos[catalogInt]] = true;
+				else Map_exist[catalogInt][pos[catalogInt]] = false;
 				pos[catalogInt]++;
 			}
 			TrimString(sTemp);
@@ -478,18 +486,12 @@ public CatalogChoosed(Handle:menu, MenuAction:action, client, itemNum)
 		{
 			while (i < 1000)
 			{
-				if (!StrEqual("", CHI_name_total[catalog][i], true))
+				if (!StrEqual("", CHI_name_total[i], true))
 				{
-					char displayName[256];
-					FindMapResult findmap = FindMap(EN_name_total[i], displayName, 256);
-					if(findmap == FindMap_Found)
-					{
+					if(Map_exist_total[i])
 						AddMenuItem(mapmenu, EN_name_total[i], CHI_name_total[i]);
-					}
 					else
-					{
 						AddMenuItem(mapmenu, EN_name_total[i], CHI_name_total[i], ITEMDRAW_DISABLED);
-					}
 				}
 				else
 				{
@@ -504,16 +506,10 @@ public CatalogChoosed(Handle:menu, MenuAction:action, client, itemNum)
 			{
 				if (!StrEqual("", CHI_name[catalog][i], true))
 				{
-					char displayName[256];
-					FindMapResult findmap = FindMap(EN_name[catalog][i], displayName, 256);
-					if(findmap == FindMap_Found)
-					{
+					if(Map_exist[catalog][i])
 						AddMenuItem(mapmenu, EN_name[catalog][i], CHI_name[catalog][i]);
-					}
 					else
-					{
 						AddMenuItem(mapmenu, EN_name[catalog][i], CHI_name[catalog][i], ITEMDRAW_DISABLED);
-					}
 				}
 				else
 				{
@@ -829,5 +825,5 @@ public Action:IsNobodyConnected(Handle:timer, any:timerDisconnectTime)
 			return  Plugin_Stop;
 	}
 	
-	return  Plugin_Stop;
+	return Plugin_Stop;
 }

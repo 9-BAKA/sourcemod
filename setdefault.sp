@@ -1,7 +1,7 @@
 #include <sourcemod>
 #include <sdktools_functions>
 
-bool server_hibernating = false;
+bool server_hibernating = true;
 int thirdparty_count = 0;
 Handle g_hTimer_CheckEmpty;
 
@@ -78,7 +78,7 @@ public void SetVal()
 	SetConVarInt(FindConVar("sm_jumpmod"), 0);
 	SetConVarInt(FindConVar("sm_auto_respawn"), 0);
 	SetConVarInt(FindConVar("sm_health_enable"), 0);
-	SetConVarInt(FindConVar("sm_teleport_enable"), 0);
+	SetConVarInt(FindConVar("sm_teleport_enable"), 1);
 	SetConVarInt(FindConVar("sm_tpall_enable"), 0);
 	ServerCommand("sm_on141");
 	ServerCommand("sm_onif");
@@ -133,9 +133,7 @@ public Action Timer_OnFeedDog(Handle timer, any param)
 	bool isOfficialMap = true;
 	char mapName[256];
 	GetCurrentMap(mapName, 256);
-	if (mapName[0] != 'c')
-		isOfficialMap = false;
-	if (!IsCharNumeric(mapName[1]))
+	if (mapName[0] != 'c' || !IsCharNumeric(mapName[1]))
 		isOfficialMap = false;
 
 	if (!HasHumanPlayer()) {

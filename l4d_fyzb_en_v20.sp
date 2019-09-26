@@ -114,11 +114,13 @@ public OnPluginStart()
  	RegConsoleCmd("sm_fyzb2", Command_FYZB2);
  	Reset();
 }
+
 public OnMapStart()
 {
 	PrecacheSound(SOUND_LANDING, true) ;
 	PrecacheSound(SOUND_LANDING2, true) ;
 }
+
 public ConVarChange(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	damage=GetConVarInt(l4d_fyzb_damage );
@@ -137,12 +139,12 @@ public ConVarChange(Handle:convar, const String:oldValue[], const String:newValu
 	safegravity=GetConVarFloat(l4d_fyzb_safegravity);
  	infecteduse=GetConVarInt(l4d_fyzb_infecteduse) ;
  	godmode=GetConVarInt(l4d_fyzb_god) ;
-
 }
+
  public Action:evtPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
  	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(client<=0)return;
+	if(client <= 0) return;
 	//if(IsClientInGame(client) && IsPlayerAlive(client))
 	{
 		SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue",  1.0);
@@ -151,7 +153,6 @@ public ConVarChange(Handle:convar, const String:oldValue[], const String:newValu
 		OnAir[client]=0;
  		MovementState[client]=0;
 	}
-
 }
 
 public Action:Msg(Handle:timer, any:data)
@@ -159,6 +160,7 @@ public Action:Msg(Handle:timer, any:data)
 	PrintToChatAll("\x03输入:\x04!fyzb 或 !fyzb2\x03 来开启 hunter 跳(大地图使用，请勿用于跑图)");
   	return Plugin_Continue;
 }
+
 public Action:Command_FYZB(client, args)
 {
 	if (client == 0 || !IsClientInGame(client))return Plugin_Handled;
@@ -176,6 +178,7 @@ public Action:Command_FYZB(client, args)
 	}
   	return Plugin_Handled;
 }
+
 public Action:Command_FYZB2(client, args)
 {
 	if (client == 0 || !IsClientInGame(client))	return Plugin_Handled;
@@ -210,6 +213,7 @@ new clientflag;
 new Float:dis;
 new Handle:trace;
 new random;
+
 public OnGameFrame()
 {
 	//new flag=GetEntityFlags(client)  //FL_ONGROUND
@@ -223,8 +227,10 @@ public OnGameFrame()
 	}
 	return;
 }
+
 new plaerteam;
 new bool:canuse;
+
 public Do(client)
 {
 	buttons = GetClientButtons(client);
@@ -378,7 +384,6 @@ public Do(client)
 			{
 				if(plaerteam==2)
 				{
-					//SetEntProp(client, Prop_Data, "m_takedamage", 2, 1);
 					SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue",  1.0);
 					SetEntityGravity(client, 1.0);
 					CreateTimer(0.3, NotGodMode, client);
@@ -401,26 +406,20 @@ public Do(client)
 						GetClientAbsOrigin(client, clientpos);
 						Shake(clientpos, FallVol[client]);
 					}
-					//PrintToChatAll("shake %f", FallVol[client]);
 				}
 				FallVol[client]=0.0;
  			}
 			else
 			{
 				GetEntDataVector(client, all_iVelocity, velocity);
-				//vel=GetVectorLength(velocity);
-				//PrintToChatAll("%f", velocity[2]);
 				if(0.0-velocity[2]>=FallVol[client])
 				{
 					FallVol[client]=0.0-velocity[2];
-					//PrintToChatAll("shake %f", FallVol[client]);
 				}
  				if(0.0-velocity[2]>=safefallspeed)
 				{
- 					//if(MovementState[client]==0 && team==2)
  					if(plaerteam==2)
 					{
-						//PrintToChatAll("god %f", velocity[2]);
 						if(godmode==1)
 						{
 							SetEntProp(client, Prop_Data, "m_takedamage", 0, 1);							
@@ -431,39 +430,21 @@ public Do(client)
 						}
 					}
 					MovementState[client]=1;
-				}
-				//else
-				//{
-				//	if(MovementState[client]==1 && team==2)
-				//	{
-				//		if(godmode==1)
-				//		{
-
-				//			CreateTimer(0.1, GodMode, client);
-				//			//SetEntProp(client, Prop_Data, "m_takedamage", 2, 1);
-				//		}
-				//		else
-				//		{
-				//			SetEntityGravity(client,1.0);
-				//		}
- 			//		}
-				//	MovementState[client]=0;
-
-				//}
-				
+				}				
 			}
 		}
 	}
 	KeyBuffer[client]=buttons;
 	FlagBuffer[client]=clientflag;
-
 }
+
 bool:IsPlayerTank (client)
 {
 	if(GetEntProp(client,Prop_Send,"m_zombieClass") == 5)
 		return true;
 	return false;
 }
+
 Shake(Float:pos[3], Float:vel)
 {
  	new ent1=CreateEntityByName("env_shake");           
@@ -487,8 +468,8 @@ Shake(Float:pos[3], Float:vel)
 	CreateTimer(0.1, DeletePushForce, push);
  
 	EmitAmbientSound(SOUND_LANDING2, pos, SOUND_FROM_WORLD, SNDLEVEL_RAIDSIREN);	
-	
 }
+
 public Action:DeletePushForce(Handle:timer, any:ent)
 {
     if (IsValidEntity(ent))
@@ -503,6 +484,7 @@ public Action:DeletePushForce(Handle:timer, any:ent)
 		}
     }
 }
+
 public Action:StopShake(Handle:timer, any:ent)
 {
     if (IsValidEntity(ent))
@@ -511,6 +493,7 @@ public Action:StopShake(Handle:timer, any:ent)
 		RemoveEdict(ent);
     }
 }
+
 public Action:NotGodMode(Handle:timer, any:client)
 {
     if (IsClientInGame(client) && IsPlayerAlive(client))
@@ -519,6 +502,7 @@ public Action:NotGodMode(Handle:timer, any:client)
 		//PrintToChatAll("stop god ");
 	}
 }
+
 public Action:CallBoss(Handle:timer, any:client)
 {
 	if(IsClientInGame(client) && IsPlayerAlive(client) && GetClientTeam(client)==2)
@@ -531,6 +515,7 @@ public Action:CallBoss(Handle:timer, any:client)
   			else CheatCommand(client, "z_spawn", "witch", "" );
 	}
 }
+
  public AddParticle( String:s_Effect[100], Float:f_Origin[3])
 {
 	decl i_Particle;
@@ -550,6 +535,7 @@ public Action:CallBoss(Handle:timer, any:client)
 
 	return i_Particle;
 }
+
 public Action:KillParticle(Handle:timer, any:i_Particle)
 {
 	if (IsValidEntity(i_Particle))
@@ -558,11 +544,13 @@ public Action:KillParticle(Handle:timer, any:i_Particle)
        
     }
 }
+
 public Action:DamagePlayer(Handle:timer, any:client)
 {
 	new team1=GetClientTeam(client);
 	DamageEffect(client, team1);
 }
+
 stock DamageEffect(target, team1)
 {
  	new String:N[20];
@@ -581,7 +569,6 @@ stock DamageEffect(target, team1)
 	//DispatchKeyValue(target, "targetname",	"cake");			// Clear target's mark
 	return;
 }
- 
 
 public Action:RoundEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
@@ -604,7 +591,6 @@ public Action:RoundStart(Handle:event, const String:name[], bool:dontBroadcast)
 	}
  
 	timer_handle=CreateTimer(GetConVarFloat(l4d_fyzb_showtime), Msg, 0, TIMER_REPEAT);
-	Reset();
 	return Plugin_Continue;
 }
  
@@ -618,25 +604,56 @@ stock CheatCommand(client, String:command[], String:parameter1[], String:paramet
 	SetCommandFlags(command, flags);
 	SetUserFlagBits(client, userflags);
 }
+
+public void OnClientDisconnect(int client)
+{
+	if(!IsFakeClient(client))
+	{
+		int userid = GetClientUserId(client);
+		CreateTimer(5.0, Check, userid);
+		
+	}
+}
+
+public Action:Check(Handle:Timer, any:userid)
+{
+	new client = GetClientOfUserId(userid);
+	if(client == 0 || !IsClientConnected(client) || IsFakeClient(client))
+	{
+		bool e = GetConVarBool(l4d_fyzb_init);
+		JumpEnabled[client]=e;
+		ReadyButton[client]=IN_SPEED;
+ 		FlagBuffer[client]=0;
+		OnAir[client]=0;
+ 		MovementState[client]=0;
+		if(client != 0 && IsClientInGame(client) && IsPlayerAlive(client))
+		{
+			SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue",  1.0);
+			SetEntityGravity(client, 1.0);
+			SetEntProp(client, Prop_Data, "m_takedamage", 2, 1);
+		}
+	}
+}	
  
 Reset()
 {
-	new bool:e=GetConVarInt(l4d_fyzb_init)>0;
-	for (new x = 1; x   <=MaxClients ; x++)
+	bool e = GetConVarBool(l4d_fyzb_init);
+	for (int i=1; i<=MaxClients; i++)
 	{
- 		JumpEnabled[x]=e;
-		ReadyButton[x]=IN_SPEED;
- 		FlagBuffer[x]=0;
-		OnAir[x]=0;
- 		MovementState[x]=0;
-		if(IsClientInGame(x) && IsPlayerAlive(x))
+ 		JumpEnabled[i]=e;
+		ReadyButton[i]=IN_SPEED;
+ 		FlagBuffer[i]=0;
+		OnAir[i]=0;
+ 		MovementState[i]=0;
+		if(IsClientInGame(i) && IsPlayerAlive(i))
 		{
-			SetEntPropFloat(x, Prop_Data, "m_flLaggedMovementValue",  1.0);
-			SetEntityGravity(x,1.0);
-			SetEntProp(x, Prop_Data, "m_takedamage", 2, 1);
+			SetEntPropFloat(i, Prop_Data, "m_flLaggedMovementValue",  1.0);
+			SetEntityGravity(i, 1.0);
+			SetEntProp(i, Prop_Data, "m_takedamage", 2, 1);
 		}
 	}
 }
+
 public bool:TraceEntityFilterPlayer(entity, contentsMask)
 {
 	return (entity > GetMaxClients() || !entity);
