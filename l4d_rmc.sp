@@ -38,7 +38,6 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_bd", Bindkeyhots);
 	RegConsoleCmd("sm_rhelp", Scdescription);
 	RegConsoleCmd("sm_kb", Kbcheck);
-	//RegAdminCmd("sm_kb", Kbcheck, ADMFLAG_ROOT);
 	RegConsoleCmd("sm_sp", RListLoadplayer);
 	RegConsoleCmd("sm_zs", Rzhisha);
 	RegAdminCmd("sm_set", Numsetcheck, ADMFLAG_ROOT);
@@ -210,7 +209,7 @@ public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
 		int reserved = 0;
 		if (Rnmax - reserved < playernum)
 		{
-			if (client)
+			if (!GetUserFlagBits(client))
 			{
 				KickClient(client, "服务器已满,你不是管理员无法进入预留通道!");
 			}

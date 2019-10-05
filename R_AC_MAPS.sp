@@ -269,6 +269,7 @@ public Action:Command_VotenextmapsMenu(client, args)
 		SetMenuTitle(menu, "请选择地图类别");
 		AddMenuItem(menu, "-1", "刷新地图缓存");
 		AddMenuItem(menu, "-2", "刷新地图列表");
+		AddMenuItem(menu, "17", "金秋限时活动");
 		AddMenuItem(menu, "16", "近期新增");
 		AddMenuItem(menu, "0", "所有");
 		AddMenuItem(menu, "15", "所有-评分降序");

@@ -8,10 +8,10 @@ Handle g_hTimer_CheckEmpty;
 public Plugin:myinfo =
 {
 	name = "设置默认值",
-	description = "",
-	author = "",
+	description = "设置默认值",
+	author = "BAKA",
 	version = "1.0",
-	url = ""
+	url = "baka.cirno.cn"
 };
 
 public void OnPluginStart()
@@ -19,12 +19,15 @@ public void OnPluginStart()
 	RegAdminCmd("sm_setdefault", SetDefault, ADMFLAG_ROOT, "设置服务器默认值");
 	RegAdminCmd("sm_setall", SetAll, ADMFLAG_ROOT, "将服务器所有参数设为默认值");
 
-	ServerCommand("sm_on141");
-	SetConVarInt(FindConVar("sb_all_bot_game"), 0);
-	SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 0);
+	SetVal();
+	ServerCommand("map c1m1_hotel");
+	SetConVarInt(FindConVar("sb_all_bot_game"), 1);
+	SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
+	PrintToServer("加载提示1");
 }
 
 public OnMapStart() {
+	thirdparty_count = 0;
 	Timer_CheckEmpty_Kill();
 	g_hTimer_CheckEmpty = CreateTimer(5.0, Timer_OnFeedDog, INVALID_HANDLE, TIMER_REPEAT);
 }
@@ -36,8 +39,10 @@ public OnMapEnd() {
 public void OnClientConnected(int client)
 {
 	// 是否bot？
+	PrintToServer("链接提示1");
 	if (!IsFakeClient(client) && server_hibernating)
 	{
+		PrintToServer("链接提示2");
 		SetConVarInt(FindConVar("sb_all_bot_game"), 1);
 		SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
 		server_hibernating = false;
@@ -137,6 +142,7 @@ public Action Timer_OnFeedDog(Handle timer, any param)
 		isOfficialMap = false;
 
 	if (!HasHumanPlayer()) {
+		PrintToServer("休眠计时：%d", thirdparty_count);
 		thirdparty_count++;
 		if (thirdparty_count > 60) {
 			thirdparty_count = 0;
