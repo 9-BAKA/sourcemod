@@ -10,7 +10,7 @@ public Plugin:myinfo =
 	name = "设置默认值",
 	description = "设置默认值",
 	author = "BAKA",
-	version = "1.0",
+	version = "1.1",
 	url = "baka.cirno.cn"
 };
 
@@ -19,7 +19,6 @@ public void OnPluginStart()
 	RegAdminCmd("sm_setdefault", SetDefault, ADMFLAG_ROOT, "设置服务器默认值");
 	RegAdminCmd("sm_setall", SetAll, ADMFLAG_ROOT, "将服务器所有参数设为默认值");
 
-	SetVal();
 	ServerCommand("map c1m1_hotel");
 	SetConVarInt(FindConVar("sb_all_bot_game"), 1);
 	SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
@@ -39,10 +38,9 @@ public OnMapEnd() {
 public void OnClientConnected(int client)
 {
 	// 是否bot？
-	PrintToServer("链接提示1");
 	if (!IsFakeClient(client) && server_hibernating)
 	{
-		PrintToServer("链接提示2");
+		PrintToServer("链接提示");
 		SetConVarInt(FindConVar("sb_all_bot_game"), 1);
 		SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
 		server_hibernating = false;

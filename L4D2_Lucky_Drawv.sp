@@ -822,15 +822,21 @@ public Action:Award(Client)
 
 public Action:ResetGodmod(Handle:timer, any:Client)
 {
-	SetEntProp(Client, Prop_Data, "m_takedamage", 2, 1);
-	PrintToChat(Client, "\x02无敌状态结束");
+	if (IsClientInGame(Client))
+	{
+		SetEntProp(Client, Prop_Data, "m_takedamage", 2, 1);
+		PrintToChat(Client, "\x02无敌状态结束");
+	}
 	return Action:0;
 }
 
 public Action:ResetGravity(Handle:timer, any:Client)
 {
-	SetEntityGravity(Client, 1.0);
-	PrintToChat(Client, "\x02低重力状态结束");
+	if (IsClientInGame(Client))
+	{
+		SetEntityGravity(Client, 1.0);
+		PrintToChat(Client, "\x02低重力状态结束");
+	}
 	return Action:0;
 }
 
@@ -868,189 +874,36 @@ public Action:sift_start1(Client)
 
 public Action:sift_start2(Client)
 {
-	new diceNum2 = GetRandomInt(1, 12);
-	switch (diceNum2)
-	{
-		case 1:
-		{
-			prize2[Client] = 1;
-		}
-		case 2:
-		{
-			prize2[Client] = 2;
-		}
-		case 3:
-		{
-			prize2[Client] = 3;
-		}
-		case 4:
-		{
-			prize2[Client] = 4;
-		}
-		case 5:
-		{
-			prize2[Client] = 5;
-		}
-		case 6:
-		{
-			prize2[Client] = 6;
-		}
-		case 7:
-		{
-			prize2[Client] = 7;
-		}
-		case 8:
-		{
-			prize2[Client] = 8;
-		}
-		case 9:
-		{
-			prize2[Client] = 9;
-		}
-		case 10:
-		{
-			prize2[Client] = 10;
-		}
-		case 11:
-		{
-			prize2[Client] = 11;
-		}
-		case 12:
-		{
-			prize2[Client] = 12;
-		}
-		default:
-		{
-		}
-	}
+	int diceNum2 = GetRandomInt(1, 12);
+	prize2[Client] = diceNum2;
 	return Action:0;
 }
 
 public Action:sift_start3(Client)
 {
-	new diceNum3 = GetRandomInt(1, 4);
-	switch (diceNum3)
-	{
-		case 1:
-		{
-			prize3[Client] = 1;
-		}
-		case 2:
-		{
-			prize3[Client] = 2;
-		}
-		case 3:
-		{
-			prize3[Client] = 3;
-		}
-		case 4:
-		{
-			prize3[Client] = 4;
-		}
-		default:
-		{
-		}
-	}
+	int diceNum3 = GetRandomInt(1, 4);
+	prize3[Client] = diceNum3;
 	return Action:0;
 }
 
 public Action:sift_start4(Client)
 {
-	new diceNum4 = GetRandomInt(1, 6);
-	switch (diceNum4)
-	{
-		case 1:
-		{
-			prize4[Client] = 1;
-		}
-		case 2:
-		{
-			prize4[Client] = 2;
-		}
-		case 3:
-		{
-			prize4[Client] = 3;
-		}
-		case 4:
-		{
-			prize4[Client] = 4;
-		}
-		case 5:
-		{
-			prize4[Client] = 5;
-		}
-		case 6:
-		{
-			prize4[Client] = 6;
-		}
-		default:
-		{
-		}
-	}
+	int diceNum4 = GetRandomInt(1, 6);
+	prize4[Client] = diceNum4;
 	return Action:0;
 }
 
 public Action:sift_start5(Client)
 {
-	new diceNum5 = GetRandomInt(1, 5);
-	switch (diceNum5)
-	{
-		case 1:
-		{
-			prize5[Client] = 1;
-		}
-		case 2:
-		{
-			prize5[Client] = 2;
-		}
-		case 3:
-		{
-			prize5[Client] = 3;
-		}
-		case 4:
-		{
-			prize5[Client] = 4;
-		}
-		case 5:
-		{
-			prize5[Client] = 5;
-		}
-		default:
-		{
-		}
-	}
+	int diceNum5 = GetRandomInt(1, 5);
+	prize5[Client] = diceNum5;
 	return Action:0;
 }
 
 public Action:sift_start6(Client)
 {
 	new diceNum6 = GetRandomInt(1, 5);
-	switch (diceNum6)
-	{
-		case 1:
-		{
-			prize6[Client] = 1;
-		}
-		case 2:
-		{
-			prize6[Client] = 2;
-		}
-		case 3:
-		{
-			prize6[Client] = 3;
-		}
-		case 4:
-		{
-			prize6[Client] = 4;
-		}
-		case 5:
-		{
-			prize6[Client] = 5;
-		}
-		default:
-		{
-		}
-	}
+	prize6[Client] = diceNum6;
 	return Action:0;
 }
 

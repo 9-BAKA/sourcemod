@@ -14,7 +14,8 @@ Handle hUsermnums;
 int usermnums;
 int AwayCEnable;
 int KickEnable;
-char Rmc_ChangeTeam[66];
+char Rmc_ChangeTeam[MAXPLAYERS+1];
+bool ConnectedClient[MAXPLAYERS+1];
 
 public Plugin myinfo =
 {
@@ -56,6 +57,11 @@ public void OnPluginStart()
 	hKickEnable = CreateConVar("L4D2_Kick_Enable", "1", "是否开启自动踢出多余BOT");
 	KickEnable = GetConVarBool(hKickEnable);
 	RCNcheck = false;
+	for (int i = 0; i <= MAXPLAYERS; i++)
+	{
+		Rmc_ChangeTeam[i] = 0;
+		ConnectedClient[i] = false;
+	}
 	AutoExecConfig(true, "l4d2_rmc");
 }
 
@@ -100,7 +106,9 @@ public Action Jointhegame(int client, int args)
 		}
 		else
 		{
-			CheatCommand(client, "sb_takecontrol");
+			// CheatCommand(client, "sb_takecontrol");
+			ClientCommand(client, "jointeam 2");
+			ClientCommand(client, "go_away_from_keyboard");
 			PrintToChat(client, "\x05[加入成功:]\x04但由于没有存活电脑，你当前为死亡状态.");
 		}
 	}
@@ -144,6 +152,12 @@ public void OnClientDisconnect(int client)
 	}
 }
 
+public Action RACMEvent_FinaleWin(Handle event, char name, bool dontBroadcast)
+{
+	for (int i = 0; i <= MAXPLAYERS; i++)
+		Rmc_ChangeTeam[i] = 0;
+}
+
 public Action Check(Handle Timer, int userid)
 {
 	int client = GetClientOfUserId(userid);
@@ -152,7 +166,7 @@ public Action Check(Handle Timer, int userid)
 		CreateTimer(1.0, DisKickClient);
 		Rmc_ChangeTeam[client] = 0;
 	}
-}	
+}
 
 public Action DisKickClient(Handle timer)
 {
@@ -294,7 +308,7 @@ public Action Scdescription(int client, int args)
 	PrintToChatAll("\x05[插件说明]\x03 !jg\x04或\x03!joingame\x04 加入游戏, \x03!away\x04 观察者, \x03!diannao\x04 增加一个电脑,");
 	PrintToChatAll("\x05[插件说明]\x03 !sinfo\x04 显示服务器人数信息, \x03!rhelp\x04 显示插件使用说明");
 	PrintToChatAll("\x05[插件说明]\x03 !sp\x04 显示还在加载中的玩家列表, \x03!zs或者!kill\x04 自杀");
-	//PrintToChatAll("\x05[插件说明]\x03 !kb\x04 踢除所有bot, \x03!sset\x04 设置服务器人数 \x03");
+	PrintToChatAll("\x05[插件说明]\x03 !kb\x04 踢除所有bot, \x03!sset\x04 设置服务器人数 \x03");
 	return Plugin_Handled;
 }
 
@@ -473,32 +487,36 @@ public Action Rzhisha(int client, int args)
 
 public Action RListLoadplayer(int client, int args)
 {
-	char RLPlist[64];
-	int Rlnameall = 0;
-	bool RloadplayerN = false;
-	PrintToChatAll("\x05[提示]\x03 加载中的玩家列表...");
+	char PlayerName[64];
+	int InGameCount = 0;
+	int HumanNum = 0;
+	HumanNum = Humannums();
+	PrintToChatAll("\x05[提示]\x03 已经在游戏中的玩家列表...");
 	int i = 1;
 	while (i <= MaxClients)
 	{
-		if (IsClientInGame(i))
+		if (IsClientConnected(i) && !IsFakeClient(i))
 		{
-			if (IsClientConnected(i) && !IsFakeClient(i))
+			if (IsClientInGame(i))
 			{
-				GetClientName(i, RLPlist, 64);
-				Rlnameall++;
-				PrintToChatAll("\x05[%i]\x04 %s \x01ID: %i", Rlnameall, RLPlist, i);
-				RloadplayerN = true;
+				GetClientName(i, PlayerName, 64);
+				InGameCount++;
+				PrintToChatAll("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
+				PrintToServer("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
 			}
 		}
 		i++;
 	}
-	if (!RloadplayerN)
+	PrintToChatAll("\x05[提示]\x03 加载中的玩家列表...");
+	if (HumanNum - InGameCount == 0)
 	{
 		PrintToChatAll("\x05       ------ 无 ------");
+		PrintToServer("\x05       ------ 无 ------");
 	}
 	else
 	{
-		PrintToChatAll("\x05------\x04 %i \x05人还在加载中------", Rlnameall);
+		PrintToChatAll("\x05------\x04 %i \x05人还在加载中------", HumanNum - InGameCount);
+		PrintToServer("\x05------\x04 %i \x05人还在加载中------", HumanNum - InGameCount);
 	}
 	return Plugin_Handled;
 }
