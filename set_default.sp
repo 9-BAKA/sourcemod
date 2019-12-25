@@ -44,6 +44,9 @@ public void OnClientConnected(int client)
 		SetConVarInt(FindConVar("sb_all_bot_game"), 1);
 		SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
 		server_hibernating = false;
+		thirdparty_count = 0;
+		Timer_CheckEmpty_Kill();
+		g_hTimer_CheckEmpty = CreateTimer(5.0, Timer_OnFeedDog, INVALID_HANDLE, TIMER_REPEAT);
 	}
 }
 

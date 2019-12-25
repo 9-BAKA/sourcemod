@@ -732,7 +732,8 @@ public Action KillAllInfected(Handle timer)
 }
 
 public Action CmdOffIf(int client, int args)
-{	
+{
+	ServerCommand("sm_off14");
 	SetConVarInt(FindConVar("director_no_bosses"), 1, false, false);
 	SetConVarInt(FindConVar("director_no_mobs"), 1, false, false);
 	SetConVarInt(FindConVar("z_common_limit"), 0, false, false);

@@ -43,6 +43,9 @@ new Handle:VotensED;
 new Handle:NeedAdmin;
 new Float:lastDisconnectTime;
 new bool:Foujue;
+new bool:FirstStart = false;
+new Handle:RestartTimer;
+new timeoutt = 0;
  
 enum voteType
 {
@@ -145,13 +148,37 @@ Handle:OpenConfig()
 	{
 		PrintToServer("[笨蛋海绵提示] 文件数据 data/l4d2_abbw_map.txt 加载成功");
 	}
-	new Handle:hFile = CreateKeyValues("第三方图数据 -by 笨蛋海绵", "", "");
+	new Handle:hFile = CreateKeyValues("第三方图数据", "", "");
 	if (!FileToKeyValues(hFile, sPath))
 	{
 		CloseHandle(hFile);
 		SetFailState("无法载入 data/l4d2_abbw_map.txt'");
 	}
 	return hFile;
+}
+
+public OnMapStart()
+{
+	if (FirstStart){
+		PrintToServer("开始60秒重启倒计时");
+		RestartTimer = CreateTimer(1.0, RestartAnnounce, _, TIMER_REPEAT);
+		FirstStart = false;
+	}
+	timeoutt = 0;
+}
+
+public Action:RestartAnnounce(Handle:timer)
+{
+	timeoutt = timeoutt + 1;
+	if (timeoutt <= 60){
+		PrintHintTextToAll("初始关卡重启倒计时:还有 %d 秒.", 60 - timeoutt);
+	}
+	else{
+		KillTimer(RestartTimer);
+		timeoutt = 0;
+		ServerCommand("sm_cvar mp_restartgame 1");
+		PrintToChatAll("\x03[提示] \x04关卡已重启!");
+	}
 }
 
 public OnClientPutInServer(client)
@@ -161,9 +188,10 @@ public OnClientPutInServer(client)
 
 public Action:TimerAnnounce(Handle:timer, any:client)
 {
-	if (IsClientInGame(client))
+	if (client != 0 && IsClientInGame(client))
 		PrintToChat(client, "\x04[\x03提示\x04]\x05 输入\x03 !vote \x04进行投票回血及更换三方地图.");
 }
+
 public Action:Command_Votes(client, args) 
 { 
 	if(GetConVarInt(VotensED) == 1)
@@ -421,6 +449,8 @@ public Action:Command_VotemapsMenu(client, args)
 		SetMenuTitle(menu, "请选择地图类别");
 		AddMenuItem(menu, "-1", "刷新地图缓存");
 		AddMenuItem(menu, "-2", "刷新地图列表");
+		AddMenuItem(menu, "19", "每周地图");
+		AddMenuItem(menu, "18", "旧本周地图");
 		AddMenuItem(menu, "17", "金秋限时活动");
 		AddMenuItem(menu, "16", "近期新增");
 		AddMenuItem(menu, "0", "所有");
@@ -464,6 +494,10 @@ public CatalogChoosed(Handle:menu, MenuAction:action, client, itemNum)
 		{
 			if (!GetConVarBool(NeedAdmin) || GetUserFlagBits(client))
 			{
+				PrintToChatAll("\04%N \03刷新了地图缓存!!!", client);
+				PrintToChatAll("\04%N \03刷新了地图缓存!!!", client);
+				PrintToChatAll("\04%N \03刷新了地图缓存!!!", client);
+				PrintToChatAll("\03崩服警告!!!");
 				ServerCommand("update_addon_paths;mission_reload");
 				PrintToChat(client, "地图缓存已刷新");
 				FakeClientCommand(client, "sm_mapvote");
@@ -761,6 +795,7 @@ public Action:VoteEndDelay(Handle:timer)
 }
 public Action:Changelevel_Map(Handle:timer)
 {
+	FirstStart = true;
 	ServerCommand("changelevel %s", votesmaps);
 }
 //===============================
@@ -806,7 +841,7 @@ bool:TestVoteDelay(client)
 //=======================================
 public OnClientDisconnect(client)
 {
-	if (IsClientInGame(client) && IsFakeClient(client)) return;
+	if (client != 0 && IsClientInGame(client) && IsFakeClient(client)) return;
 
 	new Float:currenttime = GetGameTime();
 	

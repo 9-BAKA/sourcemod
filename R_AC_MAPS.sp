@@ -28,6 +28,10 @@ new bool:VotedMap = false;
 new Votey = 0;
 new Voten = 0;
 
+new bool:FirstStart = false;
+new Handle:RestartTimer;
+new timeoutt = 0;
+
 public Plugin:myinfo =
 {
 	name = "L4D2自动换图及投票下一张图",
@@ -138,6 +142,27 @@ public OnMapStart()
 	}
 	R_ACMHint = GetConVarBool(hR_ACMHint);
 	R_ACMDelay = GetConVarFloat(hR_ACMDelay);
+
+	if (FirstStart){
+		PrintToServer("开始60秒重启倒计时");
+		RestartTimer = CreateTimer(1.0, RestartAnnounce, _, TIMER_REPEAT);
+		FirstStart = false;
+	}
+	timeoutt = 0;
+}
+
+public Action:RestartAnnounce(Handle:timer)
+{
+	timeoutt = timeoutt + 1;
+	if (timeoutt <= 60){
+		PrintHintTextToAll("初始关卡重启倒计时:还有 %d 秒.", 60 - timeoutt);
+	}
+	else{
+		KillTimer(RestartTimer);
+		timeoutt = 0;
+		ServerCommand("sm_cvar mp_restartgame 1");
+		PrintToChatAll("\x03[提示] \x04关卡已重启!");
+	}
 }
 
 public RACMEvent_activate(Handle:event, String:name[], bool:dontBroadcast)
@@ -231,6 +256,7 @@ public Action:Command_Getnextmap(client, args)
 
 public Action:RACMapsN(Handle:timer)
 {
+	FirstStart = true;
 	ServerCommand("changelevel %s", R_Next_Maps);
 	return Action:0;
 }
@@ -269,6 +295,8 @@ public Action:Command_VotenextmapsMenu(client, args)
 		SetMenuTitle(menu, "请选择地图类别");
 		AddMenuItem(menu, "-1", "刷新地图缓存");
 		AddMenuItem(menu, "-2", "刷新地图列表");
+		AddMenuItem(menu, "19", "每周地图");
+		AddMenuItem(menu, "18", "旧本周地图");
 		AddMenuItem(menu, "17", "金秋限时活动");
 		AddMenuItem(menu, "16", "近期新增");
 		AddMenuItem(menu, "0", "所有");
@@ -395,7 +423,7 @@ public MapMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 		GetMenuItem(menu, itemNum, info, sizeof(info), _, name, sizeof(name));
 		votesmaps = info;
 		votesmapsname = name;
-		PrintToChatAll("\x05[提示] \x04%N 发起投票更换下一张图为 \x05 %s", client, votesmapsname);
+		PrintToChatAll("\x05[提示] \x04%N 想要将下一张图更换为 \x05 %s", client, votesmapsname);
 		DisplayVoteMapsMenu(client);		
 	}
 	if (action == MenuAction_Cancel)
@@ -418,7 +446,7 @@ public DisplayVoteMapsMenu(client)
 	}
 	
 	g_hVoteMenu = CreateMenu(Handler_VoteCallback, MenuAction:MENU_ACTIONS_ALL);
-	SetMenuTitle(g_hVoteMenu, "发起投票换图 %s %s",votesmapsname, votesmaps);
+	SetMenuTitle(g_hVoteMenu, "发起投票将下一张图更换为 %s %s",votesmapsname, votesmaps);
 	AddMenuItem(g_hVoteMenu, VOTE_YES, "Yes");
 	AddMenuItem(g_hVoteMenu, VOTE_NO, "No");
 	SetMenuExitButton(g_hVoteMenu, false);
