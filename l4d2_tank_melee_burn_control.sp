@@ -46,14 +46,14 @@ public OnPluginStart()
 	g_TankMeleeControlEnable = CreateConVar("sm_tank_melee_control_enable", "1", "启用、关闭坦克近战伤害控制功能", 0, true, 0.0, true, 1.0);
 	
 	g_TankMeleeControlType = CreateConVar("sm_tank_melee_control_type", "1", "坦克近战伤害控制功能类型，0为百分比，1为固定伤害", 0, true, 0.0, true, 1.0);
-	g_TankMeleeControlPercent = CreateConVar("sm_tank_melee_control_percent", "2", "坦克近战伤害控制百分比量", 0, true, 0.0, true, 1.0);
-	g_TankMeleeControlValue = CreateConVar("sm_tank_melee_control_Value", "100", "坦克近战伤害控制固定伤害量", 0, true, 0.0);
-	g_TankMeleeControlHint = CreateConVar("sm_tank_melee_control_Hint", "1", "坦克近战伤害控制是否提示，0不提示，1提示框提示，2对话框提示", 0, true, 0.0, true, 2.0);
+	g_TankMeleeControlPercent = CreateConVar("sm_tank_melee_control_percent", "2", "坦克近战伤害控制百分比量", 0, true, 0.0, true, 100.0);
+	g_TankMeleeControlValue = CreateConVar("sm_tank_melee_control_value", "100", "坦克近战伤害控制固定伤害量", 0, true, 0.0);
+	g_TankMeleeControlHint = CreateConVar("sm_tank_melee_control_hint", "1", "坦克近战伤害控制是否提示，0不提示，1提示框提示，2对话框提示", 0, true, 0.0, true, 2.0);
 
 	g_TankBurnControlType = CreateConVar("sm_tank_burn_control_type", "0", "坦克点燃伤害控制功能类型，0为时间，1为固定伤害", 0, true, 0.0, true, 1.0);
-	g_TankBurnControlTime = CreateConVar("sm_tank_burn_control_Time", "100.0", "坦克点燃存活时间", 0, true, 0.0);
-	g_TankBurnControlValue = CreateConVar("sm_tank_burn_control_Value", "80", "坦克点燃固定每秒伤害", 0, true, 0.0);
-	g_TankFireControlValue = CreateConVar("sm_tank_fire_control_Value", "80", "坦克燃烧瓶固定每秒伤害", 0, true, 0.0);
+	g_TankBurnControlTime = CreateConVar("sm_tank_burn_control_time", "100.0", "坦克点燃存活时间", 0, true, 0.0);
+	g_TankBurnControlValue = CreateConVar("sm_tank_burn_control_value", "80", "坦克点燃固定每秒伤害", 0, true, 0.0);
+	g_TankFireControlValue = CreateConVar("sm_tank_fire_control_value", "80", "坦克燃烧瓶固定每秒伤害", 0, true, 0.0);
 	// g_TankBurnControlHint = CreateConVar("sm_tank_burn_control_Hint", "2", "坦克点燃伤害控制是否提示，0不提示，1提示框提示，2对话框提示", 0, true, 0.0, true, 2.0);
 
 	sm_TankMeleeControlEnable = GetConVarBool(g_TankMeleeControlEnable);
@@ -164,9 +164,9 @@ void ChangeDamageMelee(float &damage, int victim, int attacker)
 	{
 		damage = float(max_health * sm_TankMeleeControlPercent / 100);
 		if (sm_TankMeleeControlHint == 1)
-			PrintHintText(attacker, "[近战伤害控制]对tank造成了总血量%d\%的伤害", sm_TankMeleeControlPercent);
+			PrintHintText(attacker, "[近战伤害控制]对tank造成了总血量%d%%%%的伤害", sm_TankMeleeControlPercent);
 		if (sm_TankMeleeControlHint == 2)
-			PrintToChat(attacker, "\x04[近战伤害控制]\x01对tank造成了总血量\x05%d\%\x01的伤害", sm_TankMeleeControlPercent);
+			PrintToChat(attacker, "\x04[近战伤害控制]\x01对tank造成了总血量\x05%d%%\x01的伤害", sm_TankMeleeControlPercent);
 	}
 	if (sm_TankMeleeControlType == 1)
 	{

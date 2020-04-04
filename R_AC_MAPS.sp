@@ -22,6 +22,7 @@ new Handle:g_hVoteMenu = INVALID_HANDLE;
 new Handle:NeedAdmin;
 new bool:Foujue;
 new bool:VotedMap = false;
+new bool:FirstWin = true;
 
 #define VOTE_NO "no"
 #define VOTE_YES "yes"
@@ -134,6 +135,7 @@ Handle:OpenConfig()
 public OnMapStart()
 {
 	VotedMap = false;
+	FirstWin = true;
 	RACMLoad();
 	if (strcmp(R_Next_Maps, "none", true)  == 0)
 	{
@@ -158,7 +160,7 @@ public Action:RestartAnnounce(Handle:timer)
 		PrintHintTextToAll("初始关卡重启倒计时:还有 %d 秒.", 60 - timeoutt);
 	}
 	else{
-		KillTimer(RestartTimer);
+		if (RestartTimer) KillTimer(RestartTimer);
 		timeoutt = 0;
 		ServerCommand("sm_cvar mp_restartgame 1");
 		PrintToChatAll("\x03[提示] \x04关卡已重启!");
@@ -170,7 +172,7 @@ public RACMEvent_activate(Handle:event, String:name[], bool:dontBroadcast)
 	if (R_ACMHint)
 	{
 		new Client = GetClientOfUserId(GetEventInt(event, "userid", 0));
-		if (Client && !IsFakeClient(Client))
+		if (Client && IsClientInGame(Client) && !IsFakeClient(Client))
 		{
 			if (strcmp(R_Next_Maps, "none", true))
 			{
@@ -185,12 +187,19 @@ public Action:RACSHints(Handle:timer, any:client)
 {
 	// PrintToChat(client, "\x04[ACM]\x03 已是最后一个章节");
 	// PrintToChat(client, "\x04[ACM]\x03 下个战役: \x04%s", R_Next_Name);
-	PrintToChat(client, "\x04[ACM]\x03 请输入 \x04!votenext \x03投票选出下一张图", R_Next_Name);
+	if (client && IsClientInGame(client) && !IsFakeClient(client))
+	{
+		PrintToChat(client, "\x04[ACM]\x03 请输入 \x04!votenext \x03投票选出下一张图", R_Next_Name);
+	}
 	return Action:0;
 }
 
 public Action:RACMEvent_FinaleWin(Handle:event, String:name[], bool:dontBroadcast)
 {
+	if (!FirstWin)
+	{
+		return Action:0;
+	}
 	if (!VotedMap)
 	{
 		RACMLoad();
@@ -209,6 +218,7 @@ public Action:RACMEvent_FinaleWin(Handle:event, String:name[], bool:dontBroadcas
 		PrintToChatAll("\x04[ACM]\x03 %d秒后将自动换图", ACMHdelayT);
 	}
 	VotedMap = false;
+	FirstWin = false;
 	CreateTimer(3.0, RACMaps, any:0, 0);
 	return Action:0;
 }

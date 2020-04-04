@@ -20,8 +20,6 @@ public void OnPluginStart()
 	RegAdminCmd("sm_setall", SetAll, ADMFLAG_ROOT, "将服务器所有参数设为默认值");
 
 	ServerCommand("map c1m1_hotel");
-	SetConVarInt(FindConVar("sb_all_bot_game"), 1);
-	SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
 	PrintToServer("加载提示1");
 }
 

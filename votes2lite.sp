@@ -60,10 +60,10 @@ new voteType:g_voteType = voteType;
 public Plugin:myinfo =
 {
 	name = "投票插件核心",
-	author = "fenghf",
+	author = "BAKA",
 	description = "Votes Commands",
-	version = "1.2.2a",
-	url = "http://bbs.3dmgame.com/l4d"
+	version = "1.0",
+	url = "https://baka.cirno.cn"
 }
 
 public OnPluginStart()
@@ -174,7 +174,9 @@ public Action:RestartAnnounce(Handle:timer)
 		PrintHintTextToAll("初始关卡重启倒计时:还有 %d 秒.", 60 - timeoutt);
 	}
 	else{
-		KillTimer(RestartTimer);
+		if (RestartTimer != INVALID_HANDLE){
+			KillTimer(RestartTimer);
+		}
 		timeoutt = 0;
 		ServerCommand("sm_cvar mp_restartgame 1");
 		PrintToChatAll("\x03[提示] \x04关卡已重启!");
@@ -449,7 +451,7 @@ public Action:Command_VotemapsMenu(client, args)
 		SetMenuTitle(menu, "请选择地图类别");
 		AddMenuItem(menu, "-1", "刷新地图缓存");
 		AddMenuItem(menu, "-2", "刷新地图列表");
-		AddMenuItem(menu, "19", "每周地图");
+		AddMenuItem(menu, "19", "春节地图");
 		AddMenuItem(menu, "18", "旧本周地图");
 		AddMenuItem(menu, "17", "金秋限时活动");
 		AddMenuItem(menu, "16", "近期新增");

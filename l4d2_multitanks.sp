@@ -167,8 +167,8 @@ public Action:OnTankSpawn(Handle:event, String:event_name[], bool:dontBroadcast)
 		}
 		else
 		{
-			tank_spawn_buffer = tank_spawn_buffer + tank_spawn_multi - 1;
-			SpawnMoreTank(tank_spawn_multi);
+			tank_spawn_buffer = tank_spawn_multi - 1;
+			SpawnMoreTank(tank_spawn_multi - 1);
 		}
 	}
 }
@@ -184,10 +184,15 @@ public void SpawnMoreTank(int count)
 			break;
 		}
 	}
+
+	if (iCommandExecuter == 0)
+	{
+		return;
+	}
 	
 	int iFlags = GetCommandFlags("z_spawn_old");
 	SetCommandFlags("z_spawn_old", iFlags & ~FCVAR_CHEAT);
-	for (int i = 1; i < count; i++)
+	for (int i = 0; i < count; i++)
 		FakeClientCommand(iCommandExecuter, "z_spawn_old tank auto");
 	SetCommandFlags("z_spawn_old", iFlags);
 }

@@ -130,8 +130,8 @@ public EventReviveSuccess(Handle:event, const String:name[], bool:dontBroadcast)
         //print to all
         else if(bandw_notice == 2) 
         {
-            if(bandw_type == 1) PrintHintTextToAll("\x05[危险警告]\x04　%s　\x01进入了黑白状态!现在正在发\x04 [白光] \x01谁来帮帮忙!", targetName, charName);
-            else PrintToChatAll("\x05[危险警告]\x04　%s　\x01进入了黑白状态!现在正在发\x04 [白光] \x01谁来帮帮忙!", targetName, charName);
+            if(bandw_type == 1) PrintHintTextToAll("\x05[危险警告] \x04%s\x01 进入了黑白状态!现在正在发\x04 [白光] \x01谁来帮帮忙!", targetName, charName);
+            else PrintToChatAll("\x05[危险警告] \x04%s\x01 进入了黑白状态!现在正在发\x04 [白光] \x01谁来帮帮忙!", targetName, charName);
         }
         //print to infected
         else if(bandw_notice == 3)
@@ -140,8 +140,8 @@ public EventReviveSuccess(Handle:event, const String:name[], bool:dontBroadcast)
             {
                 if(!IsClientInGame(x) || GetClientTeam(x) == GetClientTeam(target) || x == target || IsFakeClient(x))
                 continue;
-                if(bandw_type == 1) PrintHintText(x, "[危险警告]- %s 进入黑白状态!现在正在发白光!赶紧干掉它!", targetName, charName);
-                else PrintToChat(x, "[危险警告]- %s 进入黑白状态!现在正在发白光!赶紧干掉它!", targetName, charName);
+                if(bandw_type == 1) PrintHintText(x, "[危险警告] -%s 进入黑白状态!现在正在发白光!赶紧干掉它!", targetName, charName);
+                else PrintToChat(x, "[危险警告] -%s 进入黑白状态!现在正在发白光!赶紧干掉它!", targetName, charName);
             }
         }
         //print to survivors
@@ -152,8 +152,8 @@ public EventReviveSuccess(Handle:event, const String:name[], bool:dontBroadcast)
                 if(!IsClientInGame(x) || GetClientTeam(x) != GetClientTeam(target) || x == target || IsFakeClient(x)) 
                 continue;
 
-                if(bandw_type == 1) PrintHintText(x, "[危险警告]- %s 进入黑白状态!现在正在发白光!急需治疗!", targetName, charName);
-                else PrintToChat(x, "[危险警告]- %s 进入黑白状态!现在正在发白光!急需治疗!", targetName, charName);
+                if(bandw_type == 1) PrintHintText(x, "[危险警告] -%s 进入黑白状态!现在正在发白光!急需治疗!", targetName, charName);
+                else PrintToChat(x, "[危险警告] -%s 进入黑白状态!现在正在发白光!急需治疗!", targetName, charName);
             }
         }        
     }

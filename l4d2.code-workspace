@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"sourcepawnLanguageServer.sourcemod_home": "e:/其他/Desktop/新建文件夹/compiler/include"
+	}
+}
