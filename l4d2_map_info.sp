@@ -14,25 +14,27 @@ int total_index;
 int current_index[64];
 
 Handle db = INVALID_HANDLE;
+Handle g_hCvarReport;
+Handle g_hTimer;
 
 public Plugin:myinfo = 
 {
     name = "地图信息sql版",
     author = "BAKA",
     description = "地图信息sql版",
-    version = "1.0",
+    version = "1.1",
     url = "https://baka.cirno.cn"
 }
 
 public void OnPluginStart()
 {
-    RegConsoleCmd("sm_mapinfo", MapInfo1, "获取当前地图信息Menu");
-    RegConsoleCmd("sm_mapinfo2", MapInfo2, "获取当前地图信息Chat");
-    RegConsoleCmd("sm_mapinfo3", MapInfo2, "获取当前地图信息Menu&Chat");
-    RegConsoleCmd("sm_mapinfoall", MapInfoAll1, "将当前地图信息展示给所有人Menu");
-    RegConsoleCmd("sm_mapinfoall2", MapInfoAll2, "将当前地图信息展示给所有人Chat");
-    RegConsoleCmd("sm_mapinfoall3", MapInfoAll3, "将当前地图信息展示给所有人Menu&Chat");
+    RegConsoleCmd("sm_mapinfo", MapInfo, "获取当前地图信息,1:Menu,2:Chat,3:Menu&Chat");
+    RegConsoleCmd("sm_mapinfoall", MapInfoAll, "将当前地图信息展示给所有人,1:Menu,2:Chat,3:Menu&Chat");
     RegConsoleCmd("sm_mapname", MapName, "获取当前地图名字");
+
+    g_hCvarReport = CreateConVar("sm_map_info_report", "1", "地图信息报告类型,1:只是第一关,2:所有关", 0);
+
+    AutoExecConfig(true, "l4d2_map_info");
 }
 
 public OnConfigsExecuted()
@@ -47,11 +49,27 @@ public OnConfigsExecuted()
 
 public void OnMapStart()
 {
+    if (g_hTimer != INVALID_HANDLE){
+        KillTimer(g_hTimer);
+        g_hTimer = INVALID_HANDLE;
+    }
+
+    // 初始化字符串
+    Format(chapter_code, sizeof(chapter_code), "");
+    Format(map_name_en, sizeof(map_name_en), "");
+    Format(map_name_zh, sizeof(map_name_zh), "");
+    Format(map_intro, sizeof(map_intro), "");
+
     for (int i = 0; i <= MaxClients; i++)
         current_index[i] = 0;
     info_exist = -1;
-    CreateTimer(20.0, DelayMapInfoCheck);
-    // CreateTimer(30.0, HintCheck);
+    CreateTimer(10.0, DelayMapInfoCheck);
+}
+
+public void OnClientPutInServer(int client)
+{
+    if (!IsFakeClient(client))
+        CreateTimer(10.0, DelayMapInfoReport, client);
 }
 
 bool ConnectDB()
@@ -61,7 +79,7 @@ bool ConnectDB()
 
     if (SQL_CheckConfig(DB_CONF_NAME))
     {
-        new String:Error[256];
+        char Error[256];
         db = SQL_Connect(DB_CONF_NAME, true, Error, sizeof(Error));
 
         if (db == INVALID_HANDLE)
@@ -121,55 +139,55 @@ bool DoFastQuery(int Client, char[] Query)
 
 public Action DelayMapInfoCheck(Handle timer)
 {
-    DataPack pack = CreateDataPack();
-    pack.WriteCell(0);
-    pack.WriteCell(0);
-    QueryMapIndex(pack);
+    MapInfoCheck(0, 0);
 }
 
-public Action HintCheck(Handle timer)
+public Action HintCheck(Handle timer, int client)
 {
-    if (info_exist == 1) CreateTimer(120.0, HintRepeat, 0, TIMER_REPEAT);
-    else if (info_exist == 0) PrintToChatAll("\x04[地图信息]\x03该地图暂无简介.")
+    // if (info_exist == 1) g_hTimer = CreateTimer(120.0, HintRepeat, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+    if (!IsClientInGame(client)) return Plugin_Stop;
+    if (info_exist == 1) PrintToChat(client, "\x04[地图信息]\x03该地图存在简介,请输入!mapinfo查看.");
+    else if (info_exist == 0) PrintToChat(client, "\x04[地图信息]\x03该地图暂无简介.");
+    return Plugin_Continue;
 }
 
-public Action HintRepeat(Handle timer, int data)
+public Action HintRepeat(Handle timer, int client)
 {
-    PrintToChatAll("\x04[地图信息]\x03该地图存在简介,请输入!mapinfo查看.")
+    PrintToChat(client, "\x04[地图信息]\x03该地图存在简介,请输入!mapinfo查看.")
 }
 
-public Action MapInfo1(int client, int args)
+public Action MapInfo(int client, int args)
 {
-    MapInfo(client, 1);
+    int printType;
+    if (args == 0)
+    {
+        printType = 1;
+    }
+    else
+    {
+        char arg[4];
+        GetCmdArg(1, arg, sizeof(arg));
+        printType = StringToInt(arg, 10);
+    }
+    MapInfoPrint(client, printType);
 }
 
-public Action MapInfo2(int client, int args)
-{
-    MapInfo(client, 2);
-}
-
-public Action MapInfo3(int client, int args)
-{
-    MapInfo(client, 3);
-}
-
-MapInfo(int client, int printType)
+MapInfoPrint(int client, int printType)
 {
     char mapName[256];
     GetCurrentMap(mapName, 256);
     if (info_exist == 0 && strcmp(mapName, chapter_code, false) == 0)
     {
         if (client == 0) PrintToChatAll("\x04[地图信息]\x03该地图暂无简介");
-        else PrintToChat(client, "\x04[地图信息]\x03该地图暂无简介");
+        else if (IsClientInGame(client)) PrintToChat(client, "\x04[地图信息]\x03该地图暂无简介");
     }
     else
     {
         if (strcmp(mapName, chapter_code, false) != 0)
         {
-            DataPack pack = CreateDataPack();
-            pack.WriteCell(client);
-            pack.WriteCell(printType);
-            QueryMapIndex(pack);
+            if (client == 0) PrintToChatAll("地图信息正在查询中...");
+            else if (IsClientInGame(client)) PrintToChat(client, "地图信息正在查询中...");
+            MapInfoCheck(client, printType);
         }
         else
         {
@@ -180,22 +198,52 @@ MapInfo(int client, int printType)
     }
 }
 
-public Action MapInfoAll1(int client, int args)
+public Action DelayMapInfoReport(Handle timer, int client)
 {
-    MapInfoAll(client, 1);
+    int report_type = GetConVarInt(g_hCvarReport);
+    if (report_type == 1)  // 只是第一关
+    {
+        if (chapter_num == 1)
+        {
+            CreateTimer(60.0, DelayMapInfo, 0);
+        }
+    }
+    else if (report_type == 2)  // 所有关
+    {
+        if (chapter_num == 1)
+        {
+            CreateTimer(60.0, DelayMapInfo, client);
+        }
+        else
+        {
+            CreateTimer(20.0, DelayMapInfo, client);
+        }
+    }
+    CreateTimer(30.0, HintCheck, client);
 }
 
-public Action MapInfoAll2(int client, int args)
+public Action DelayMapInfo(Handle timer, int client)
 {
-    MapInfoAll(client, 2);
+    MapInfoPrint(client, 3);
 }
 
-public Action MapInfoAll3(int client, int args)
+public Action MapInfoAll(int client, int args)
 {
-    MapInfoAll(client, 3);
+    int printType;
+    if (args == 0)
+    {
+        printType = 1;
+    }
+    else
+    {
+        char arg[4];
+        GetCmdArg(1, arg, sizeof(arg));
+        printType = StringToInt(arg, 10);
+    }
+    MapInfoAllPrint(client, printType);
 }
 
-public Action MapInfoAll(int client, int printType)
+public Action MapInfoAllPrint(int client, int printType)
 {
     char mapName[256];
     GetCurrentMap(mapName, 256);
@@ -205,12 +253,10 @@ public Action MapInfoAll(int client, int printType)
     }
     else
     {
-        if (strcmp(mapName, chapter_code, false) != 0)
+        if (strcmp(mapName, chapter_code, false) != 0)  // 还未获取map信息
         {
-            DataPack pack = CreateDataPack();
-            pack.WriteCell(0);
-            pack.WriteCell(printType);
-            QueryMapIndex(pack);
+            PrintToChatAll("地图信息正在查询中...");
+            MapInfoCheck(0, printType);
         }
         else
         {
@@ -221,10 +267,18 @@ public Action MapInfoAll(int client, int printType)
     }
 }
 
+MapInfoCheck(int client, int printType)
+{
+    DataPack pack = CreateDataPack();
+    pack.WriteCell(client);
+    pack.WriteCell(printType);
+    QueryMapIndex(pack);
+}
+
 QueryMapIndex(DataPack pack, SQLTCallback callback=INVALID_FUNCTION)
 {
     if (callback == INVALID_FUNCTION)
-        callback = GetMapIndex;
+        callback = QueryMapIndexCallback;
 
     char query[512];
     char mapName[256];
@@ -233,21 +287,11 @@ QueryMapIndex(DataPack pack, SQLTCallback callback=INVALID_FUNCTION)
     SQL_TQuery(db, callback, query, pack);
 }
 
-QueryMapIntro(DataPack pack, int mapIndex, SQLTCallback callback=INVALID_FUNCTION)
-{
-    if (callback == INVALID_FUNCTION)
-        callback = GetMapIntro;
-
-    char query[512];
-    Format(query, sizeof(query), "SELECT map_name_en,map_name_zh,map_chapter_num,map_official_rating,map_intro FROM l4d2_maps WHERE map_index = %d", mapIndex);
-    SQL_TQuery(db, callback, query, pack);
-}
-
-public GetMapIndex(Handle owner, Handle hndl, const char[] error, DataPack pack)
+public QueryMapIndexCallback(Handle owner, Handle hndl, const char[] error, DataPack pack)
 {
     if (hndl == INVALID_HANDLE)
     {
-        LogError("GetMapIndex Query failed: %s", error);
+        LogError("QueryMapIndex failed: %s", error);
         return;
     }
 
@@ -264,18 +308,30 @@ public GetMapIndex(Handle owner, Handle hndl, const char[] error, DataPack pack)
         pack.Reset();
         int client = pack.ReadCell();
         if (client == 0) PrintToChatAll("\x04[地图信息]\x03该地图暂无简介");
-        else PrintToChat(client, "\x04[地图信息]\x03该地图暂无简介");
+        else if (IsClientInGame(client)) PrintToChat(client, "\x04[地图信息]\x03该地图暂无简介");
     }
 }
 
-public GetMapIntro(Handle owner, Handle hndl, const char[] error, DataPack pack)
+QueryMapIntro(DataPack pack, int mapIndex, SQLTCallback callback=INVALID_FUNCTION)
+{
+    if (callback == INVALID_FUNCTION)
+        callback = QueryMapIntroCallback;
+
+    char query[512];
+    Format(query, sizeof(query), "SELECT map_name_en,map_name_zh,map_chapter_num,map_official_rating,map_intro FROM l4d2_maps WHERE map_index = %d", mapIndex);
+    SQL_TQuery(db, callback, query, pack);
+}
+
+
+public QueryMapIntroCallback(Handle owner, Handle hndl, const char[] error, DataPack pack)
 {
     if (hndl == INVALID_HANDLE)
     {
-        LogError("GetMapIntro Query failed: %s", error);
+        LogError("QueryMapIntro failed: %s", error);
         return;
     }
 
+    PrintToServer("[MapInfo]地图信息查询成功!");
     pack.Reset();
     int client = pack.ReadCell();
     int printType = pack.ReadCell();
@@ -296,7 +352,7 @@ public GetMapIntro(Handle owner, Handle hndl, const char[] error, DataPack pack)
     {
         info_exist = 0;
         if (client == 0) PrintToChatAll("该图暂无介绍");
-        else PrintToChat(client, "该图暂无介绍");
+        else if (IsClientInGame(client)) PrintToChat(client, "该图暂无介绍");
     }
     CloseHandle(pack);
 }
@@ -319,21 +375,27 @@ PrintBaseIntro(int client)
 {
     if (client == 0)
     {
-        PrintToChatAll("\x04Map index: \x01%d", map_index);
+        PrintToServer("\x04中文名: \x01%s", map_name_zh);
+        PrintToChatAll("\x04地图编号: \x01%d", map_index);
         PrintToChatAll("\x04中文名: \x01%s", map_name_zh);
         PrintToChatAll("\x04英文名: \x01%s", map_name_en);
         PrintToChatAll("\x04关卡数: \x01%d/%d", chapter_num, map_chapter_num);
-        PrintToChatAll("\x04评分: \x01%f", map_offi_rating);
+        PrintToChatAll("\x04评分: \x01%.1f", map_offi_rating);
         PrintToChatAll("\x04地图介绍: \x01%d 字", strlen(map_intro));
+        PrintToChatAll("\x05请输入\x04!mapinfo\x05获得更多信息！");
     }
     else
     {
-        PrintToChat(client, "\x04Map index: \x01%d", map_index);
-        PrintToChat(client, "\x04中文名: \x01%s", map_name_zh);
-        PrintToChat(client, "\x04英文名: \x01%s", map_name_en);
-        PrintToChat(client, "\x04关卡数: \x01%d/%d", chapter_num, map_chapter_num);
-        PrintToChat(client, "\x04评分: \x01%f", map_offi_rating);
-        PrintToChat(client, "\x04地图介绍: \x01%d 字", strlen(map_intro));
+        if (IsClientInGame(client))
+        {
+            PrintToChat(client, "\x04地图编号: \x01%d", map_index);
+            PrintToChat(client, "\x04中文名: \x01%s", map_name_zh);
+            PrintToChat(client, "\x04英文名: \x01%s", map_name_en);
+            PrintToChat(client, "\x04关卡数: \x01%d/%d", chapter_num, map_chapter_num);
+            PrintToChat(client, "\x04评分: \x01%.1f", map_offi_rating);
+            PrintToChat(client, "\x04地图介绍: \x01%d 字", strlen(map_intro));
+            PrintToChat(client, "\x05请输入\x04!mapinfo\x05获得更多信息！");
+        }
     }
 }
 
@@ -343,7 +405,7 @@ PrintIntroChat(int client)
     while (buffer_index < total_index)
     {
         if (client == 0) PrintToChatAll(map_intro_buffer[buffer_index]);
-        else PrintToChat(client, map_intro_buffer[buffer_index]);
+        else if (IsClientInGame(client)) PrintToChat(client, map_intro_buffer[buffer_index]);
         buffer_index = buffer_index + 1;
     }
 }
@@ -549,8 +611,8 @@ public Action MapName(int client, int args)
     {
         return Plugin_Handled;
     }
-    
-    ShowMapName(client);
+    if (IsClientInGame(client))
+        ShowMapName(client);
 
     return Plugin_Continue;
 }

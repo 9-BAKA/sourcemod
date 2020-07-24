@@ -25,7 +25,7 @@ public OnPluginStart()
 {
 	RegConsoleCmd("sm_zb", Command_Zb, "装逼特效", 0);
 	RegConsoleCmd("sm_boom", TimeClose, "服务器爆破装置", 0);
-	RegConsoleCmd("sm_boomt", TimeCloseT, "服务器爆破装置", 0);
+	// RegConsoleCmd("sm_boomt", TimeCloseT, "服务器爆破装置", 0);
 	// HookEvent("round_start", Event_RoundStart, EventHookMode:1);
 	HookEvent("bullet_impact", Event_BulletImpact, EventHookMode:1);
 	l4d_boom_password = CreateConVar("l4d_boom_password", "999", "服务器爆破装置密码", 0, false, 0.0, false, 0.0);
@@ -1101,13 +1101,38 @@ public Action:CmdKill(client, args)
 public Action:TimerClose(Handle:hTimer, any:data)
 {
 	ServerCommand("exit");
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			SetEntProp(i, PropType:0, "m_iHealth", -0.1, 1, 0);
-		}
-	}
+	ServerCommand("exit");
+	ServerCommand("exit");
+	ServerCommand("exit");
+	ServerCommand("exit");
+	ServerCommand("exit");
+	ServerCommand("quit");
+	ServerCommand("quit");
+	ServerCommand("quit");
+	ServerCommand("quit");
+	ServerCommand("quit");
+	ServerCommand("quit");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_load 1");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu");
+	ServerCommand("sm_zaowu 1");
+	ServerCommand("sm_zaowu 1");
+	ServerCommand("sm_zaowu 1");
+	ServerCommand("sm_zaowu 1");
+	ServerCommand("sm_zaowu 1");
+	ServerCommand("sm_zaowu 1");
+	ServerCommand("sm_zaowu 1");
 	return Action:3;
 }
 

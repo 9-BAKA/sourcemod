@@ -213,7 +213,7 @@ Version History
 #undef REQUIRE_PLUGIN
 #include <adminmenu>
 
-#define PLUGIN_NAME "自定义玩家统计"
+#define PLUGIN_NAME "玩家统计"
 #define PLUGIN_VERSION "1.4B121"
 #define PLUGIN_DESCRIPTION "玩家信息与排名统计."
 
@@ -288,7 +288,7 @@ new String:DB_PLAYERS_TOTALPLAYTIME[1024] = "playtime + playtime_versus + playti
 new String:RANKVOTE_QUESTION[128] = "Do you want to shuffle teams by player PPM?";
 
 // Message of the day
-new String:MOTD_TITLE[32] = "Message Of The Day";
+new String:MOTD_TITLE[32] = "今日消息";
 new String:MessageOfTheDay[1024];
 
 // Set to false when stats seem to work properly
@@ -671,7 +671,7 @@ public OnPluginStart()
   cvar_AnnounceToTeam = CreateConVar("l4d_stats_announceteam", "2", "聊天通知团队消息到团队模式。 0 =向所有团队打印消息，1 =仅向自己的团队打印消息，2 =仅向自己的团队和观众打印消息", FCVAR_NOTIFY, true, 0.0, true, 2.0);
   //cvar_AnnounceSpecial = CreateConVar("l4d_stats_announcespecial", "1", "Chat announcment mode for special events. 0 = Off, 1 = Player Only, 2 = Print messages to all teams, 3 = Print messages to own team only, 4 = Print messages to own team and spectators only", FCVAR_NOTIFY, true, 0.0, true, 4.0);
   cvar_MedkitMode = CreateConVar("l4d_stats_medkitmode", "0", "治疗积分奖励模式。 0 =基于治愈量，1 =静态量", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-  cvar_SiteURL = CreateConVar("l4d_stats_siteurl", "", "社区网站网址，用于排名面板显示", FCVAR_NOTIFY);
+  cvar_SiteURL = CreateConVar("l4d_stats_siteurl", "https://baka.cirno.cn/l4d2/rank/", "社区网站网址，用于排名面板显示", FCVAR_NOTIFY);
   cvar_RankOnJoin = CreateConVar("l4d_stats_rankonjoin", "1", "显示玩家连接时的排名。 0 =禁用，1 =启用", FCVAR_NOTIFY, true, 0.0, true, 1.0);
   cvar_SilenceChat = CreateConVar("l4d_stats_silencechat", "0", "聊天触发器。 0 =显示聊天触发器，1 =静默聊天触发器", FCVAR_NOTIFY, true, 0.0, true, 1.0);
   cvar_DisabledMessages = CreateConVar("l4d_stats_disabledmessages", "1", "显示“统计已禁用”消息，允许聊天命令在禁用统计信息时起作用。 0 =隐藏消息/禁用聊天，1 =显示消息/允许聊天", FCVAR_NOTIFY, true, 0.0, true, 1.0);
@@ -1084,7 +1084,7 @@ public OnConfigsExecuted()
   // RegAdminCmd("sm_rank_admin", cmd_RankAdmin, ADMFLAG_ROOT, "Display admin panel for Rank");
   // RegAdminCmd("sm_rank_clear", cmd_ClearRank, ADMFLAG_ROOT, "Clear all stats from database (asks a confirmation before clearing the database)");
   RegAdminCmd("sm_rank_shuffle", cmd_ShuffleTeams, ADMFLAG_KICK, "Shuffle teams by player PPM (Points Per Minute)");
-  // RegAdminCmd("sm_rank_motd", cmd_SetMotd, ADMFLAG_GENERIC, "Set Message Of The Day");
+  RegAdminCmd("sm_rank_motd", cmd_SetMotd, ADMFLAG_GENERIC, "Set Message Of The Day");
   
   // Read the settings etc from the database.
   ReadDb();
@@ -1445,7 +1445,7 @@ public Action:AnnounceConnect(Handle:timer, any:client)
   AnnounceCounter[client]++;
 
   ShowMOTD(client);
-  StatsPrintToChat2(client, true, "Type \x05RANKMENU \x01to operate \x04%s\x01!", PLUGIN_NAME);
+  StatsPrintToChat2(client, true, "输入\x05RANKMENU\x01来使用\x04%s\x01插件!", PLUGIN_NAME);
 }
 
 // Update the player's interstitial stats, since they may have
@@ -1748,9 +1748,9 @@ public Action:timer_ProtectedFriendly(Handle:timer, any:data)
     new Mode = GetConVarInt(cvar_AnnounceMode);
 
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(data, "保护 \x05%i 名队友\x01获得 \x04%i \x01分!", ProtectedFriendlies, Score);
+      StatsPrintToChat(data, "保护\x05%i名队友\x01获得\x04%i\x01分!", ProtectedFriendlies, Score);
     else if (Mode == 3)
-      StatsPrintToChatAll("\x05%s \x01保护 \x05%i 名队友\x01获得 \x04%i \x01分!", UserName, ProtectedFriendlies, Score);
+      StatsPrintToChatAll("\x05%s\x01保护\x05%i名队友\x01获得\x04%i\x01分!", UserName, ProtectedFriendlies, Score);
   }
 }
 // Team infected damage score
@@ -1824,9 +1824,9 @@ public Action:timer_InfectedDamageCheck(Handle:timer, any:data)
     if (Mode == 1 || Mode == 2)
     {
       if (InfectedDamage > 1)
-        StatsPrintToChat(data, "对生还者造成 \x04%i \x01点伤害获得 \x04%i \x01分!", DamageCounter, Score);
+        StatsPrintToChat(data, "对生还者造成\x04%i\x01点伤害获得\x04%i\x01分!", DamageCounter, Score);
       else
-        StatsPrintToChat(data, "对生还者造成伤害获得 \x04%i \x01分!", Score);
+        StatsPrintToChat(data, "对生还者造成伤害获得\x04%\x01分!", Score);
     }
     else if (Mode == 3)
     {
@@ -1910,9 +1910,9 @@ public Action:timer_BoomerBlindnessCheck(Handle:timer, any:data)
       if (Mode == 1 || Mode == 2)
       {
         if (AwardCounter > 0)
-          StatsPrintToChat(data, "完美喷吐获得 \x04%i \x01分\x05!", Score);
+          StatsPrintToChat(data, "完美喷吐获得\x04%i\x01分\x05!", Score);
         else
-          StatsPrintToChat(data, "造成 \x05%i \x01名生还者失明获得 \x04%i \x01分!", OriginalHitCounter, Score);
+          StatsPrintToChat(data, "造成\x05%i\x01名生还者失明获得\x04%i\x01分!", OriginalHitCounter, Score);
       }
       else if (Mode == 3)
       {
@@ -2857,7 +2857,7 @@ public Action:timer_EndCharge(Handle:timer, any:data)
     Mode = GetConVarInt(cvar_AnnounceMode);
 
   if ((Mode == 1 || Mode == 2) && IsClientConnected(data) && IsClientInGame(data))
-    StatsPrintToChat(data, "\x05完美冲撞 \x03%i \x01名幸存者获得 \x04%i \x01分!", Counter, Score);
+    StatsPrintToChat(data, "\x05完美冲撞\x03%i\x01名幸存者获得\x04%i\x01分!", Counter, Score);
   else if (Mode == 3)
   {
     decl String:AttackerName[MAX_LINE_WIDTH];
@@ -2969,9 +2969,9 @@ public Action:timer_FriendlyFireDamageEnd(Handle:timer, any:dp)
     Mode = GetConVarInt(cvar_AnnounceMode);
 
   if ((Mode == 1 || Mode == 2) && IsClientConnected(Attacker) && IsClientInGame(Attacker))
-    StatsPrintToChat(Attacker, "你由于 \x03 队友伤害 \x05(%i HP) \x03失去了 \x04%i \x01分!", HumanDamage + BotDamage, Score);
+    StatsPrintToChat(Attacker, "你由于\x03队友伤害\x05(%i HP)\x03失去了\x04%i\x01分!", HumanDamage + BotDamage, Score);
   else if (Mode == 3)
-    StatsPrintToChatAll("\x05%s \x01has \x03LOST \x04%i \x01points for inflicting \x03Friendly Fire Damage \x05(%i HP)\x01!", AttackerName, Score, HumanDamage + BotDamage);
+    StatsPrintToChatAll("\x05%s\x01由于\x03队友伤害\x05(%i HP)\x03失去了\x04%i\x01分!", AttackerName, HumanDamage + BotDamage, Score);
 }
 
 // Start team shuffle.
@@ -3073,7 +3073,7 @@ public Action:timer_UpdatePlayers(Handle:timer, Handle:hndl)
   {
     if (GetConVarBool(cvar_DisabledMessages))
     {
-      StatsPrintToChatAllPreFormatted("Left 4 Dead Stats are \x04DISABLED\x01, not enough Human players!");
+      StatsPrintToChatAllPreFormatted("没有足够的玩家,排名插件\x04被关闭了\x01!");
     }
 
     return;
@@ -3154,12 +3154,12 @@ public Action:timer_ShowTimerScore(Handle:timer, Handle:hndl)
       {
         if (Mode == 1 || Mode == 2)
         {
-          StatsPrintToChat(i, "杀死 \x05%i \x01名感染者获得 \x04%i \x01分!", TimerKills[i], TimerPoints[i]);
+          StatsPrintToChat(i, "杀死\x05%i\x01名感染者获得\x04%i\x01分!", TimerKills[i], TimerPoints[i]);
         }
         else if (Mode == 3)
         {
           GetClientName(i, Name, sizeof(Name));
-          StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for killing \x05%i \x01Infected!", Name, TimerPoints[i], TimerKills[i]);
+          StatsPrintToChatAll("\x05%s杀死\x05%i\x01名感染者获得\x04%i\x01分!", Name, TimerKills[i], TimerPoints[i]);
         }
       }
 
@@ -3396,9 +3396,9 @@ public Action:event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
     SendSQLUpdate(query);
 
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Attacker, "你由于 \x03杀死队友 \x05%s \x03失去了 \x04%i \x01分!", VictimName, Score);
+      StatsPrintToChat(Attacker, "你由于\x03杀死队友\x05%s\x03失去了\x04%i\x01分!", VictimName, Score);
     else if (Mode == 3)
-      StatsPrintToChatAll("\x05%s \x01has \x03LOST \x04%i \x01points for \x03Team Killing \x05%s\x01!", AttackerName, Score, VictimName);
+      StatsPrintToChatAll("\x05%s由于\x03杀死队友\x05%s\x03失去了\x04%i\x01分!", AttackerName, VictimName, Score);
   }
 
   // Attacker is a Survivor
@@ -3497,20 +3497,20 @@ public Action:event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
         if (Mode > 1)
         {
           GetClientName(Attacker, AttackerName, sizeof(AttackerName));
-          StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for killing%s \x05%s \x01with a \x04HEAD SHOT\x01!", AttackerName, Score, (VictimIsBot ? " a" : ""), VictimName);
+          StatsPrintToChatAll("\x05%s\x04爆头\x01杀死\x05%s\x01获得\x04%i\x01分!", AttackerName, VictimName, Score);
         }
         else
-          StatsPrintToChat(Attacker, "\x04爆头\x01 杀死 \x05%s \x01获得 \x04%i \x01分!", VictimName, Score);
+          StatsPrintToChat(Attacker, "\x04爆头\x01杀死\x05%s\x01获得\x04%i\x01分!", VictimName, Score);
       }
       else
       {
         if (Mode > 2)
         {
           GetClientName(Attacker, AttackerName, sizeof(AttackerName));
-          StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for killing%s \x05%s\x01!", AttackerName, Score, (VictimIsBot ? " a" : ""), VictimName);
+          StatsPrintToChatAll("\x05%s\x01杀死\x05%s\x01获得\x04%i\x01分!", AttackerName, VictimName, Score);
         }
         else
-          StatsPrintToChat(Attacker, "You have earned \x04%i \x01points for killing%s \x05%s\x01!", Score, (VictimIsBot ? " a" : ""), VictimName);
+          StatsPrintToChat(Attacker, "\x01杀死\x05%s\x01获得\x04%i\x01分!", VictimName, Score);
       }
     }
 
@@ -3669,7 +3669,7 @@ public Action:event_TankKilled(Handle:event, const String:name[], bool:dontBroad
 
   if (Mode && Score > 0)
   {
-    StatsPrintToChatTeam(TEAM_SURVIVORS, "在死亡 \x05%i \x01次得情况下杀死坦克,所有幸存者 \x01获得 \x04%i \x01分!", Score, Deaths);
+    StatsPrintToChatTeam(TEAM_SURVIVORS, "在死亡\x05%i\x01次的情况下杀死坦克,所有幸存者获得\x04%i\x01分!", Deaths, Score);
   }
 
   UpdateMapStat("kills", 1);
@@ -3754,9 +3754,9 @@ GiveAdrenaline(Giver, Recipient, AdrenalineID = -1)
     new Mode = GetConVarInt(cvar_AnnounceMode);
 
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Giver, "给予 \x05%s \x01兴奋剂获得 \x04%i \x01分!", RecipientName, Score);
+      StatsPrintToChat(Giver, "给予\x05%s\x01兴奋剂获得\x04%i\x01分!", RecipientName, Score);
     else if (Mode == 3)
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for giving adrenaline to \x05%s\x01!", GiverName, Score, RecipientName);
+      StatsPrintToChatAll("\x05%s由于给予\x05%s\x01兴奋剂获得获得\x04%i分!\x01!", GiverName, RecipientName, Score);
   }
 }
 
@@ -3858,9 +3858,9 @@ GivePills(Giver, Recipient, PillsID = -1)
     new Mode = GetConVarInt(cvar_AnnounceMode);
 
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Giver, "给予 \x05%s \x01药丸获得 \x04%i \x01分!", RecipientName, Score);
+      StatsPrintToChat(Giver, "给予\x05%s\x01药丸获得\x04%i\x01分!", RecipientName, Score);
     else if (Mode == 3)
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for giving pills to \x05%s\x01!", GiverName, Score, RecipientName);
+      StatsPrintToChatAll("\x05%s由于给予\x05%s\x01药丸获得获得\x04%i分!\x01!", GiverName, RecipientName, Score);
   }
 }
 
@@ -3950,9 +3950,9 @@ public Action:event_DefibPlayer(Handle:event, const String:name[], bool:dontBroa
   {
     new Mode = GetConVarInt(cvar_AnnounceMode);
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Giver, "You have earned \x04%i \x01points for Reviving \x05%s\x01 using a Defibrillator!", Score, RecipientName);
+      StatsPrintToChat(Giver, "你使用电击器拯救了\x05%s\x01,获得\x04%i\x01分!", RecipientName, Score);
     else if (Mode == 3)
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for Reviving \x05%s\x01 using a Defibrillator!", GiverName, Score, RecipientName);
+      StatsPrintToChatAll("\x05%s\x01使用电击器拯救了\x05%s\x01,获得\x04%i\x01分!", GiverName, RecipientName, Score);
   }
 }
 
@@ -4046,9 +4046,9 @@ public Action:event_HealPlayer(Handle:event, const String:name[], bool:dontBroad
   {
     new Mode = GetConVarInt(cvar_AnnounceMode);
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Giver, "You have earned \x04%i \x01points for healing \x05%s\x01!", Score, RecipientName);
+      StatsPrintToChat(Giver, "你治愈了\x05%s\x01,获得\x04%i\x01分!", RecipientName, Score);
     else if (Mode == 3)
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for healing \x05%s\x01!", GiverName, Score, RecipientName);
+      StatsPrintToChatAll("\x05%s\x01治愈了\x05%s\x01,获得\x04%i\x01分!", GiverName, RecipientName, Score);
   }
 }
 
@@ -4192,7 +4192,7 @@ public Action:event_CampaignWin(Handle:event, const String:name[], bool:dontBroa
 
   if (Mode && Score > 0)
   {
-    StatsPrintToChatTeam(TEAM_SURVIVORS, "\x03ALL SURVIVORS \x01have earned \x04%i \x01points for winning the \x04Campaign Finale \x01with \x05%i survivors\x01!", Score, SurvivorCount);
+    StatsPrintToChatTeam(TEAM_SURVIVORS, "\x05%i\x01个人活者通关\x04最终关卡\x01,\x03所有人\x01获得了\x04%i\x01分!", SurvivorCount, Score);
 
     if (NegativeScore)
       StatsPrintToChatTeam(TEAM_INFECTED, "\x03ALL INFECTED \x01have \x03LOST \x04%i \x01points for loosing the \x04Campaign Finale \x01to \x05%i survivors\x01!", Score, SurvivorCount);
@@ -4295,7 +4295,7 @@ public Action:timer_PanicEventEnd(Handle:timer, Handle:hndl)
       }
 
       if (Mode)
-        StatsPrintToChatTeam(TEAM_SURVIVORS, "\x03ALL SURVIVORS \x01have earned \x04%i \x01points for \x05No Incapicitates Or Deaths After Panic Event\x01!", Score);
+        StatsPrintToChatTeam(TEAM_SURVIVORS, "\x01在恐慌事件中无人倒地或死亡,\x03所有幸存者\x01获得\x04%i\x01分!", Score);
     }
   }
 
@@ -4414,7 +4414,7 @@ public Action:event_PlayerBlindEnd(Handle:event, const String:name[], bool:dontB
       }
 
       if (Mode)
-        StatsPrintToChatTeam(TEAM_SURVIVORS, "\x03ALL SURVIVORS \x01have earned \x04%i \x01points for \x05No Incapicitates Or Deaths After Boomer Mob\x01!", Score);
+        StatsPrintToChatTeam(TEAM_SURVIVORS, "\x01在Boomer尸潮中无人倒地或死亡,\x03所有幸存者\x01获得\x04%i\x01分!", Score);
     }
   }
 
@@ -5370,12 +5370,12 @@ public Action:event_UpgradePackAdded(Handle:event, const String:name[], bool:don
       strcopy(ModelName, sizeof(ModelName), "UNKNOWN");
 
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Player, "You have earned \x04%i \x01points for deploying \x05%s\x01!", Score, ModelName);
+      StatsPrintToChat(Player, "\x01部署\x05%s\x01获得\x04%i分!", ModelName, Score);
     else if (Mode == 3)
     {
       decl String:PlayerName[MAX_LINE_WIDTH];
       GetClientName(Player, PlayerName, sizeof(PlayerName));
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for deploying \x05%s\x01!", PlayerName, Score, ModelName);
+      StatsPrintToChatAll("\x05%s\x01部署\x05%s\x01获得\x04%i分!", PlayerName, ModelName, Score);
     }
   }
 }
@@ -5444,12 +5444,12 @@ public Action:event_GascanPoured(Handle:event, const String:name[], bool:dontBro
     new Mode = GetConVarInt(cvar_AnnounceMode);
 
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Player, "You have earned \x04%i \x01points for successfully \x05Pouring a Gascan\x01!", Score);
+      StatsPrintToChat(Player, "成功\x05灌油\x01获得\x04%i\x01分!", Score);
     else if (Mode == 3)
     {
       decl String:PlayerName[MAX_LINE_WIDTH];
       GetClientName(Player, PlayerName, sizeof(PlayerName));
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for successfully \x05Pouring a Gascan\x01!", PlayerName, Score);
+      StatsPrintToChatAll("\x05%s\x01成功\x05灌油\x01获得\x04%i\x01分!", PlayerName, Score);
     }
   }
 }
@@ -6207,11 +6207,11 @@ public Action:event_Award_L4D2(Handle:event, const String:name[], bool:dontBroad
     {
       if (Mode == 1 || Mode == 2)
       {
-        StatsPrintToChat(User, "You have earned \x04%i \x01points for Rescuing \x05%s\x01!", Score, RecipientName);
+        StatsPrintToChat(User, "拯救\x05%s\x01获得\x04%i\x01分!", RecipientName, Score);
       }
       else if (Mode == 3)
       {
-        StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for Rescuing \x05%s\x01!", UserName, Score, RecipientName);
+        StatsPrintToChatAll("\x05%s\x01拯救\x05%s\x01获得\x04%i\x01分!", UserName, RecipientName, Score);
       }
     }
   }
@@ -6501,7 +6501,7 @@ public Action:event_WitchCrowned(Handle:event, const String:name[], bool:dontBro
       decl String:Name[MAX_LINE_WIDTH];
       GetClientName(Killer, Name, sizeof(Name));
 
-      StatsPrintToChatTeam(TEAM_SURVIVORS, "\x05%s \x01has earned \x04%i \x01points for \x04Crowning the Witch\x01!", Name, Score);
+      StatsPrintToChatTeam(TEAM_SURVIVORS, "\x05%s\x04惊扰了Witch\x01获得\x04%i\x01分!", Name, Score);
     }
   }
 }
@@ -6699,11 +6699,11 @@ public Action:cmd_ShowTimedMapsTimer(client, args)
   {
     if (client == 0)
     {
-      PrintToConsole(0, "[RANK] Map timer has not started");
+      PrintToConsole(0, "[RANK]地图计时还未开始");
     }
     else
     {
-      StatsPrintToChatPreFormatted(client, "Map timer has not started");
+      StatsPrintToChatPreFormatted(client, "地图计时还未开始");
     }
 
     return Plugin_Handled;
@@ -6715,9 +6715,9 @@ public Action:cmd_ShowTimedMapsTimer(client, args)
   SetTimeLabel(CurrentMapTimer, TimeLabel, sizeof(TimeLabel));
 
   if (client == 0)
-    PrintToConsole(0, "[RANK] Current map timer: %s", TimeLabel);
+    PrintToConsole(0, "[RANK]当前地图运行时间: %s", TimeLabel);
   else
-    StatsPrintToChat(client, "Current map timer: \x04%s", TimeLabel);
+    StatsPrintToChat(client, "当前地图运行时间: \x04%s", TimeLabel);
 
   return Plugin_Handled;
 }
@@ -7042,10 +7042,10 @@ public DisplayRankMenu(client)
   SetMenuExitBackButton(menu, false);
   SetMenuExitButton(menu, true);
 
-  AddMenuItem(menu, "rank", "Show my rank");
-  AddMenuItem(menu, "top10", "Show top 10");
-  AddMenuItem(menu, "top10ppm", "Show top 10 PPM");
-  AddMenuItem(menu, "nextrank", "Show my next rank");
+  AddMenuItem(menu, "rank", "我的排名");
+  AddMenuItem(menu, "top10", "top 10玩家");
+  AddMenuItem(menu, "top10ppm", "top 10 PPM");
+  AddMenuItem(menu, "nextrank", "我的下一个排名");
   AddMenuItem(menu, "showtimer", "Show current timer");
   AddMenuItem(menu, "showrank", "Show others rank");
   AddMenuItem(menu, "showppm", "Show others PPM");
@@ -7060,11 +7060,11 @@ public DisplayRankMenu(client)
   }
   if (GetConVarInt(cvar_AnnounceMode))
   {
-    AddMenuItem(menu, "showsettings", "Modify rank settings");
+    AddMenuItem(menu, "showsettings", "修改排名设置");
   }
   //AddMenuItem(menu, "showmaptimes", "Show others current map timings");
 
-  Format(Title, sizeof(Title), "About %s", PLUGIN_NAME);
+  Format(Title, sizeof(Title), "关于 %s", PLUGIN_NAME);
   AddMenuItem(menu, "rankabout", Title);
 
   DisplayMenu(menu, client, 30);
@@ -7248,15 +7248,15 @@ public GetClientRankRankChange(Handle:owner, Handle:hndl, const String:error[], 
 
     decl String:Label[16];
     if (RankChange > 0)
-      Format(Label, sizeof(Label), "GAINED");
+      Format(Label, sizeof(Label), "上升");
     else
     {
       RankChange *= -1;
-      Format(Label, sizeof(Label), "DROPPED");
+      Format(Label, sizeof(Label), "下降");
     }
 
     if (!IsClientBot(client) && IsClientConnected(client) && IsClientInGame(client))
-      StatsPrintToChat(client, "You've \x04%s \x01rank for \x04%i position%s\x01! \x05(Rank: %i)", Label, RankChange, (RankChange > 1 ? "s" : ""), RankChangeLastRank[client]);
+      StatsPrintToChat(client, "你的排名\x04%s\x01了\x04%i\x01名! \x05(当前排名: %i)", Label, RankChange, RankChangeLastRank[client]);
   }
 }
 
@@ -7281,11 +7281,11 @@ public GetClientRankPlayerJoined(Handle:owner, Handle:hndl, const String:error[]
 
   if (ClientRank[client] > 0)
   {
-    StatsPrintToChatAll("Player \x05%s \x01joined the game! (Rank: \x03%i \x01/ Points: \x03%i\x01)", userName, ClientRank[client], ClientPoints[client]);
+    StatsPrintToChatAll("\x05%s\x01加入了游戏! (排名: \x03%i \x01/ 分数: \x03%i\x01)", userName, ClientRank[client], ClientPoints[client]);
   }
   else
   {
-    StatsPrintToChatAll("Player \x05%s \x01joined the game! (No ranking yet)", userName);
+    StatsPrintToChatAll("\x05%s\x01加入了游戏! (目前没有排名)", userName);
   }
 }
 
@@ -7356,21 +7356,21 @@ public DisplayNextRank(client)
   new Handle:NextRankPanel = CreatePanel();
   new String:Value[MAX_LINE_WIDTH];
 
-  SetPanelTitle(NextRankPanel, "Next Rank:");
+  SetPanelTitle(NextRankPanel, "升级排名:");
 
   if (ClientNextRank[client])
   {
-    Format(Value, sizeof(Value), "Points required: %i", ClientNextRank[client]);
+    Format(Value, sizeof(Value), "需求分数: %i", ClientNextRank[client]);
     DrawPanelText(NextRankPanel, Value);
 
-    Format(Value, sizeof(Value), "Current rank: %i", ClientRank[client]);
+    Format(Value, sizeof(Value), "当前排名: %i", ClientRank[client]);
     DrawPanelText(NextRankPanel, Value);
   }
   else
-    DrawPanelText(NextRankPanel, "You are 1st");
+    DrawPanelText(NextRankPanel, "你排名第一!");
 
-  DrawPanelItem(NextRankPanel, "More...");
-  DrawPanelItem(NextRankPanel, "Close");
+  DrawPanelItem(NextRankPanel, "更多...");
+  DrawPanelItem(NextRankPanel, "关闭");
   SendPanelToClient(NextRankPanel, client, NextRankPanelHandler, 30);
   CloseHandle(NextRankPanel);
 }
@@ -7396,29 +7396,29 @@ public DisplayNextRankFull(Handle:owner, Handle:hndl, const String:error[], any:
   new Handle:NextRankPanel = CreatePanel();
   new String:Value[MAX_LINE_WIDTH];
 
-  SetPanelTitle(NextRankPanel, "Next Rank:");
+  SetPanelTitle(NextRankPanel, "升级排名:");
 
   if (ClientNextRank[client])
   {
-    Format(Value, sizeof(Value), "Points required: %i", ClientNextRank[client]);
+    Format(Value, sizeof(Value), "需求分数: %i", ClientNextRank[client]);
     DrawPanelText(NextRankPanel, Value);
 
-    Format(Value, sizeof(Value), "Current rank: %i", ClientRank[client]);
+    Format(Value, sizeof(Value), "当前排名: %i", ClientRank[client]);
     DrawPanelText(NextRankPanel, Value);
   }
   else
-    DrawPanelText(NextRankPanel, "You are 1st");
+    DrawPanelText(NextRankPanel, "你排名第一!");
 
   while (SQL_FetchRow(hndl))
   {
     SQL_FetchString(hndl, 0, Name, sizeof(Name));
     Points = SQL_FetchInt(hndl, 1);
 
-    Format(Value, sizeof(Value), "%i points: %s", Points, Name);
+    Format(Value, sizeof(Value), "%i 点: %s", Points, Name);
     DrawPanelText(NextRankPanel, Value);
   }
 
-  DrawPanelItem(NextRankPanel, "Close");
+  DrawPanelItem(NextRankPanel, "关闭");
   SendPanelToClient(NextRankPanel, client, NextRankFullPanelHandler, 30);
   CloseHandle(NextRankPanel);
 }
@@ -7467,55 +7467,55 @@ public DisplayRank(Handle:owner, Handle:hndl, const String:error[], any:client)
   GetConVarString(cvar_SiteURL, URL, sizeof(URL));
   new Float:HeadshotRatio = Headshots == 0 ? 0.00 : FloatDiv(float(Headshots), float(InfectedKilled))*100;
 
-  Format(Value, sizeof(Value), "Ranking of %s" , Name);
+  Format(Value, sizeof(Value), "%s 的排名" , Name);
   SetPanelTitle(RankPanel, Value);
 
-  Format(Value, sizeof(Value), "Rank: %i of %i" , ClientRank[client], RankTotal);
+  Format(Value, sizeof(Value), "排名: %i / %i" , ClientRank[client], RankTotal);
   DrawPanelText(RankPanel, Value);
 
   if (!InvalidGameMode())
   {
-    Format(Value, sizeof(Value), "%s Rank: %i of %i" ,CurrentGamemodeLabel , ClientGameModeRank[client], GameModeRankTotal);
+    Format(Value, sizeof(Value), "%s 的排名: %i of %i" ,CurrentGamemodeLabel , ClientGameModeRank[client], GameModeRankTotal);
     DrawPanelText(RankPanel, Value);
   }
 
   if (Playtime > 60)
   {
-    Format(Value, sizeof(Value), "Playtime: %.2f hours" , FloatDiv(float(Playtime), 60.0));
+    Format(Value, sizeof(Value), "游玩时间: %.2f 小时" , FloatDiv(float(Playtime), 60.0));
     DrawPanelText(RankPanel, Value);
   }
   else
   {
-    Format(Value, sizeof(Value), "Playtime: %i min" , Playtime);
+    Format(Value, sizeof(Value), "游玩时间: %i 分钟" , Playtime);
     DrawPanelText(RankPanel, Value);
   }
 
-  Format(Value, sizeof(Value), "Points: %i" , Points);
+  Format(Value, sizeof(Value), "分数: %i" , Points);
   DrawPanelText(RankPanel, Value);
 
-  Format(Value, sizeof(Value), "PPM: %.2f" , PPM);
+  Format(Value, sizeof(Value), "每分钟得分数: %.2f" , PPM);
   DrawPanelText(RankPanel, Value);
 
-  Format(Value, sizeof(Value), "Infected Killed: %i" , InfectedKilled);
+  Format(Value, sizeof(Value), "感染者击杀: %i" , InfectedKilled);
   DrawPanelText(RankPanel, Value);
 
-  Format(Value, sizeof(Value), "Survivors Killed: %i" , SurvivorsKilled);
+  Format(Value, sizeof(Value), "幸存者击杀: %i" , SurvivorsKilled);
   DrawPanelText(RankPanel, Value);
 
-  Format(Value, sizeof(Value), "Headshots: %i" , Headshots);
+  Format(Value, sizeof(Value), "爆头数: %i" , Headshots);
   DrawPanelText(RankPanel, Value);
 
-  Format(Value, sizeof(Value), "Headshot Ratio: %.2f \%" , HeadshotRatio);
+  Format(Value, sizeof(Value), "爆头率: %.2f \%" , HeadshotRatio);
   DrawPanelText(RankPanel, Value);
 
   if (!StrEqual(URL, "", false))
   {
-    Format(Value, sizeof(Value), "For full stats visit %s", URL);
+    Format(Value, sizeof(Value), "访问 %s 获得更多排名数据", URL);
     DrawPanelText(RankPanel, Value);
   }
 
   //DrawPanelItem(RankPanel, "Next Rank");
-  DrawPanelItem(RankPanel, "Close");
+  DrawPanelItem(RankPanel, "关闭");
   SendPanelToClient(RankPanel, client, RankPanelHandler, 30);
   CloseHandle(RankPanel);
 }
@@ -8076,7 +8076,7 @@ public CreateTimedMapsMenu(Handle:owner, Handle:hndl, const String:error[], any:
     SetPanelTitle(TimedMapsPanel, "Timed Maps:");
 
     DrawPanelText(TimedMapsPanel, "There are no recorded map timings!");
-    DrawPanelItem(TimedMapsPanel, "Close");
+    DrawPanelItem(TimedMapsPanel, "关闭");
 
     SendPanelToClient(TimedMapsPanel, client, TimedMapsPanelHandler, 30);
     CloseHandle(TimedMapsPanel);
@@ -8213,7 +8213,7 @@ public CreateTimedMapsMenu2(Handle:owner, Handle:hndl, const String:error[], any
     SetPanelTitle(TimedMapsPanel, "Timed Maps:");
 
     DrawPanelText(TimedMapsPanel, "There are no recorded times for this gamemode!");
-    DrawPanelItem(TimedMapsPanel, "Close");
+    DrawPanelItem(TimedMapsPanel, "关闭");
 
     SendPanelToClient(TimedMapsPanel, client, TimedMapsPanelHandler, 30);
     CloseHandle(TimedMapsPanel);
@@ -8354,7 +8354,7 @@ public CreateTimedMapsMenu3(Handle:owner, Handle:hndl, const String:error[], any
     SetPanelTitle(TimedMapsPanel, "Timed Maps:");
 
     DrawPanelText(TimedMapsPanel, "There are no recorded times for this map!");
-    DrawPanelItem(TimedMapsPanel, "Close");
+    DrawPanelItem(TimedMapsPanel, "关闭");
 
     SendPanelToClient(TimedMapsPanel, client, TimedMapsPanelHandler, 30);
     CloseHandle(TimedMapsPanel);
@@ -8612,20 +8612,20 @@ public DisplayAboutPanel(client)
 
   new Handle:panel = CreatePanel();
 
-  Format(Value, sizeof(Value), "About %s:", PLUGIN_NAME);
+  Format(Value, sizeof(Value), "关于 %s:", PLUGIN_NAME);
   SetPanelTitle(panel, Value);
 
-  Format(Value, sizeof(Value), "Version: %s", PLUGIN_VERSION);
+  Format(Value, sizeof(Value), "版本: %s", PLUGIN_VERSION);
   DrawPanelText(panel, Value);
 
-  Format(Value, sizeof(Value), "Author: %s", "Mikko Andersson (muukis)");
+  Format(Value, sizeof(Value), "作者: %s", "Mikko Andersson (muukis)");
   DrawPanelText(panel, Value);
 
-  Format(Value, sizeof(Value), "Description: %s", "Record player statistics.");
+  Format(Value, sizeof(Value), "描述: %s", "记录玩家统计信息.");
   DrawPanelText(panel, Value);
 
-  DrawPanelItem(panel, "Back");
-  DrawPanelItem(panel, "Close");
+  DrawPanelItem(panel, "后退");
+  DrawPanelItem(panel, "关闭");
 
   SendPanelToClient(panel, client, AboutPanelHandler, 30);
   CloseHandle(panel);
@@ -9699,7 +9699,7 @@ public CheckSurvivorsWin()
     }
 
     if (Mode)
-      StatsPrintToChatTeam(TEAM_SURVIVORS, "\x03ALL SURVIVORS \x01have earned \x04%i \x01points for \x05Not Disturbing A Witch!", Score);
+      StatsPrintToChatTeam(TEAM_SURVIVORS, "\x05没有惊扰Witch,\x03所有幸存者\x01获得\x04%i\x01分!", Score);
   }
 
   Score = 0;
@@ -9754,7 +9754,7 @@ public CheckSurvivorsWin()
 
   if (Mode && Score > 0)
   {
-    StatsPrintToChatTeam(TEAM_SURVIVORS, "\x03ALL SURVIVORS \x01have earned \x04%i \x01points for reaching a Safe House with \x05%i Deaths!", Score, Deaths);
+    StatsPrintToChatTeam(TEAM_SURVIVORS, "死亡\x05%i次\x01到达安全屋,\x03所有幸存者\x01获得\x04%i\x01分!", Deaths, Score);
 
     if (NegativeScore)
       StatsPrintToChatTeam(TEAM_INFECTED, "\x03ALL INFECTED \x01have \x03LOST \x04%i \x01points for letting the survivors reach a Safe House!", Score);
@@ -10261,9 +10261,9 @@ UpdateFriendlyFire(Attacker, Victim)
     Mode = GetConVarInt(cvar_AnnounceMode);
 
   if (Mode == 1 || Mode == 2)
-    StatsPrintToChat(Attacker, "You have \x03LOST \x04%i \x01points for \x03Friendly Firing \x05%s\x01!", Score, VictimName);
+    StatsPrintToChat(Attacker, "伤害队友\x05%s\x03失去\x04%i\x01分!", VictimName, Score);
   else if (Mode == 3)
-    StatsPrintToChatAll("\x05%s \x01has \x03LOST \x04%i \x01points for \x03Friendly Firing \x05%s\x01!", AttackerName, Score, VictimName);
+    StatsPrintToChatAll("\x05%s伤害队友\x05%s\x03失去\x04%i\x01分!", AttackerName, VictimName, Score);
 }
 
 UpdateHunterDamage(Client, Damage)
@@ -10480,10 +10480,10 @@ SurvivorDiedNamed(Attacker, Victim, const String:VictimName[], const String:Atta
     {
       decl String:AttackerName[MAX_LINE_WIDTH];
       GetClientName(Attacker, AttackerName, sizeof(AttackerName));
-      StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for killing \x05%s\x01!", AttackerName, Score, VictimName);
+      StatsPrintToChatAll("\x05%s\x01杀死\x05%s\x01获得\x04%i\x01分!", AttackerName, VictimName, Score);
     }
     else
-      StatsPrintToChat(Attacker, "You have earned \x04%i \x01points for killing \x05%s\x01!", Score, VictimName);
+      StatsPrintToChat(Attacker, "你杀死了\x05%s\x01获得\x04%i\x01分!", VictimName, Score);
   }
 
   UpdateMapStat("survivor_kills", 1);
@@ -10843,7 +10843,7 @@ AnnounceMedkitPenalty(Mode = -1)
     Mode = GetConVarInt(cvar_AnnounceMode);
 
   if (Mode)
-    StatsPrintToChatTeam(TEAM_SURVIVORS, "\x03ALL SURVIVORS \x01now earns only \x04%i percent \x01of their normal points after using their \x05%i%s Medkit%s\x01!", RoundToNearest(ReductionFactor * 100), MedkitsUsedCounter, (MedkitsUsedCounter == 1 ? "st" : (MedkitsUsedCounter == 2 ? "nd" : (MedkitsUsedCounter == 3 ? "rd" : "th"))), (ServerVersion == Engine_Left4Dead ? "" : " or Defibrillator"));
+    StatsPrintToChatTeam(TEAM_SURVIVORS, "由于使用了第\x05%i个医疗包%s\x01,现在\x03所有幸存者\x01只能获得\x04百分之%i\x01的分数!", MedkitsUsedCounter, (ServerVersion == Engine_Left4Dead ? "" : "或电击器"), RoundToNearest(ReductionFactor * 100));
 }
 
 GetClientInfectedType(Client)
@@ -11119,7 +11119,7 @@ public UpdateMapTimingStat(Handle:owner, Handle:hndl, const String:error[], any:
       if (Mode)
       {
         SetTimeLabel(OldTime, TimeLabel, sizeof(TimeLabel));
-        StatsPrintToChat(Client, "You did not improve your best time \x04%s \x01to finish this map!", TimeLabel);
+        StatsPrintToChat(Client, "你未能打破你完成这张地图的最快记录，当前记录:\x04%s!", TimeLabel);
       }
 
       Format(query, sizeof(query), "UPDATE %stimedmaps SET plays = plays + 1, modified = NOW() WHERE map = '%s' AND gamemode = %i AND difficulty = %i AND mutation = '%s' AND steamid = '%s'", DbPrefix, MapName, GamemodeID, GameDifficulty, Mutation, ClientID);
@@ -11129,7 +11129,7 @@ public UpdateMapTimingStat(Handle:owner, Handle:hndl, const String:error[], any:
       if (Mode)
       {
         SetTimeLabel(TotalTime, TimeLabel, sizeof(TimeLabel));
-        StatsPrintToChat(Client, "Your new best time to finish this map is \x04%s\x01!", TimeLabel);
+        StatsPrintToChat(Client, "你未能打破你完成这张地图的最快记录，记录更新:\x04%s\x01!", TimeLabel);
       }
 
       Format(query, sizeof(query), "UPDATE %stimedmaps SET plays = plays + 1, time = %f, players = %i, modified = NOW() WHERE map = '%s' AND gamemode = %i AND difficulty = %i AND mutation = '%s' AND steamid = '%s'", DbPrefix, TotalTime, PlayerCounter, MapName, GamemodeID, GameDifficulty, Mutation, ClientID);
@@ -11143,7 +11143,7 @@ public UpdateMapTimingStat(Handle:owner, Handle:hndl, const String:error[], any:
     if (Mode)
     {
       SetTimeLabel(TotalTime, TimeLabel, sizeof(TimeLabel));
-      StatsPrintToChat(Client, "It took \x04%s \x01to finish this map!", TimeLabel);
+      StatsPrintToChat(Client, "完成本地图花费\x04%s\x01!", TimeLabel);
     }
 
     Format(query, sizeof(query), "INSERT INTO %stimedmaps (map, gamemode, difficulty, mutation, steamid, plays, time, players, modified, created) VALUES ('%s', %i, %i, '%s', '%s', 1, %f, %i, NOW(), NOW())", DbPrefix, MapName, GamemodeID, GameDifficulty, Mutation, ClientID, TotalTime, PlayerCounter);

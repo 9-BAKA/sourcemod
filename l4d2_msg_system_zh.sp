@@ -48,6 +48,7 @@ public OnPluginStart()
 	HookEvent("revive_success", EventReviveSuccess, EventHookMode:1);
 	HookEvent("defibrillator_used", EventDefiSuccess, EventHookMode:1);
 	HookEvent("create_panic_event", createPanicEvent, EventHookMode:1);
+	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode:1);
 	AutoExecConfig(true, "l4d2_msg_system_zh", "sourcemod");
 }
 
@@ -271,13 +272,20 @@ public OnClientConnected(client)
 
 public Action:Event_PlayerDisconnect(Handle:event, String:strName[], bool:bDontBroadcast)
 {
-	PrintToChatAll("\x04[提示]\x03  有人离开了游戏");
+	int client = GetClientOfUserId(GetEventInt(event, "userid", 0));
+	if (client != 0 && IsClientInGame(client) && !IsFakeClient(client))
+	{
+		char disconnectReason[64];
+		GetEventString(event, "reason", disconnectReason, sizeof(disconnectReason)); 
+		PrintToServer("\x04[提示]\x03有人离开了游戏,原因: %s", disconnectReason);
+		PrintToChatAll("\x04[提示]\x03有人离开了游戏,原因: %s", disconnectReason);
+	}
 	return Action:0;
 }
 
 public Action:Event_PlayerConnect(Handle:event, String:strName[], bool:bDontBroadcast)
 {
-	PrintToChatAll("\x04[提示]\x03  有人进入了游戏");
+	PrintToChatAll("\x04[提示]\x03有人进入了游戏");
 	return Action:0;
 }
 

@@ -3512,7 +3512,7 @@ public MenuHandler_SetHpPlayer(Handle:menu2b, MenuAction:action, param1, param2)
 	{
 		new health;
 		new target = GetClientOfUserId(g_iCurrentUserId[param1]);
-		return;
+		// return;
 		switch(param2)
 		{
 			case 0:

@@ -7,6 +7,7 @@
 
 #define SOUND_KILL1  "/weapons/knife/knife_hitwall1.wav"
 #define SOUND_KILL2  "/weapons/knife/knife_deploy.wav"
+#define SOUND_HEART  "player/heartbeatloop.wav"
 
 #define INCAP	         1
 #define INCAP_GRAB	     2
@@ -133,7 +134,7 @@ public OnMapStart()
 {
  	if(L4D2Version)	PrecacheSound(SOUND_KILL2, true) ;
 	else PrecacheSound(SOUND_KILL1, true) ;
-	 
+	PrecacheSound(SOUND_HEART);
 }
 public Action:RoundStart(Handle:event, const String:name[], bool:dontBroadcast)
 {
@@ -801,6 +802,12 @@ ReviveClientWithKid(client)
 	new temphpoffset = FindSendPropInfo("CTerrorPlayer","m_healthBuffer");
 	SetEntDataFloat(client, temphpoffset, GetConVarFloat(revivehealth)*100.0, true);
 	SetEntityHealth(client, 1);
+
+	CreateTimer(1.0, StopHeartSound, client);
+}
+public Action StopHeartSound(Handle timer, int client)
+{
+    StopSound(client, SNDCHAN_STATIC, SOUND_HEART);
 }
 ReviveClientWithPills(client)
 {

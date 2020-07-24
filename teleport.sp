@@ -731,8 +731,8 @@ public Action:ShowAcceptTpMenu(client, tpFrom)
 	GetClientName(tpFrom, name, MAX_NAME_LENGTH);
 	SetMenuTitle(menu, "%s 想要传送到你这里:", name);
 	
-	char tpFromClientID[4];
-	Format(tpFromClientID, 3, "%i", tpFrom);
+	char tpFromClientID[6];
+	Format(tpFromClientID, 6, "%i", tpFrom);
 	AddMenuItem(menu, tpFromClientID, "接受");
 	AddMenuItem(menu, tpFromClientID, "拒绝");
 
@@ -885,7 +885,7 @@ TeleportBot(int client)
 		int i = 1;
 		while (i <= MaxClients)
 		{
-			if (IsClientInGame(i) && GetClientTeam(i) == 2 && i != client)
+			if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i) && i != client)
 			{
 				float vAngles1[3];
 				float vOrigin1[3];

@@ -24,8 +24,8 @@ public Plugin:myinfo =
 	name = "传送所有人",
 	author = "BAKA",
 	description = "到达安全门以及需要所有人开机关的地方允许传送所有人",
-	version = "1.0",
-	url = "<- URL ->"
+	version = "1.1",
+	url = "baka.cirno.cn"
 }
 
 public OnPluginStart()
@@ -42,6 +42,8 @@ public OnPluginStart()
 	HookEvent("player_entered_checkpoint", Check);
 	HookEvent("player_activate", Event_activate_R);
 	HookConVarChange(hTpallEnable, ConVarChanged);
+
+	AutoExecConfig(true, "tpall");
 }
 
 public ConVarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
@@ -152,11 +154,6 @@ public int HumanNum()
 
 public Action:Botton(Handle:event, String:name[], bool:dontBroadcast)
 {
-	if (sm_TpAllEnable == 0)
-	{
-		return Plugin_Handled;
-	}
-	
 	new Client = GetClientOfUserId(GetEventInt(event, "userid", 0));
 
 	if (Pressed[Client])  // 玩家已经按过了按钮
@@ -187,10 +184,10 @@ public Action:Botton(Handle:event, String:name[], bool:dontBroadcast)
 		PrintToChatAll("\x04%s\x01按下机关,耗时\x03%i分%i秒\x01,排名\x03%i/%i",
 							clientName, minutes, seconds, TotalPressed, HumanNum());
 	}
-	if (!TpAllEnable && TotalPressed > HumanNum() / 2)
+	if (sm_TpAllEnable && !TpAllEnable && TotalPressed > HumanNum() * 3 / 4)
 	{
 		TpAllEnable = true;
-		PrintToChatAll("\x04[提示]\x03已有超过半数人按下机关,已可使用!tpall指令.");
+		PrintToChatAll("\x04[提示]\x03已有超过四分之三人按下机关,已可使用!tpall指令.");
 	}
 	return Plugin_Handled;
 }
@@ -199,11 +196,6 @@ public Action:Door(Handle:event, String:name[], bool:dontBroadcast)  // 实体�
 {
 	new Client = GetClientOfUserId(GetEventInt(event, "userid", 0));
 	new Entity = GetEventInt(event, "targetid");
-	
-	if (sm_TpAllEnable == 0)
-	{
-		return Plugin_Handled;
-	}
 
 	if(IsValidEntity(Entity))
 	{
@@ -238,17 +230,17 @@ public Action:Door(Handle:event, String:name[], bool:dontBroadcast)  // 实体�
 				int seconds = timeT % 60;
 				if (TotalEntered == 1)
 				{
-					PrintToChatAll("\x04%s\x03第一个\x01到达安全屋,耗时\x04%i分%i秒", clientName, minutes, seconds);
+					PrintToChatAll("\x04%s\x03第一个\x01到达安全屋,耗时\x03%i分%i秒", clientName, minutes, seconds);
 				}
 				else
 				{
 					PrintToChatAll("\x04%s\x01到达了安全屋,耗时\x03%i分%i秒\x01,排名\x03%i/%i",
 										clientName, minutes, seconds, TotalEntered, HumanNum());
 				}
-				if (!TpAllEnable && TotalEntered > HumanNum() / 2)
+				if (sm_TpAllEnable && !TpAllEnable && TotalEntered > HumanNum() / 2)
 				{
 					TpAllEnable = true;
-					PrintToChatAll("\x04[提示]\x03已有超过半数人到达安全屋,已可使用!tpall指令.");
+					PrintToChatAll("\x04[提示]\x03已有超过四分之三人到达安全屋,已可使用!tpall指令.");
 				}
 			}
 		}
@@ -258,11 +250,6 @@ public Action:Door(Handle:event, String:name[], bool:dontBroadcast)  // 实体�
 
 public Action:Check(Handle:event, String:name[], bool:dontBroadcast)  // Hook检查
 {
-	if (sm_TpAllEnable == 0)
-	{
-		return Plugin_Handled;
-	}
-
 	new Client = GetClientOfUserId(GetEventInt(event, "userid", 0));
 	if (Entered[Client])  // 玩家已经开过了门
 	{
@@ -289,28 +276,23 @@ public Action:Check(Handle:event, String:name[], bool:dontBroadcast)  // Hook检
 	int seconds = timeT % 60;
 	if (TotalEntered == 1)
 	{
-		PrintToChatAll("\x04%s\x03第一个\x01到达安全屋,耗时\x04%i分%i秒", clientName, minutes, seconds);
+		PrintToChatAll("\x04%s\x03第一个\x01到达安全屋,耗时\x03%i分%i秒", clientName, minutes, seconds);
 	}
 	else
 	{
-		PrintToChatAll("\x04%s\x01到达安全屋,耗时\x04%i分%i秒\x01,排名\x04%i/%i",
+		PrintToChatAll("\x04%s\x01到达安全屋,耗时\x03%i分%i秒\x01,排名\x03%i/%i",
 							clientName, minutes, seconds, TotalEntered, HumanNum());
 	}
-	if (!TpAllEnable && TotalEntered > HumanNum() / 2)
+	if (sm_TpAllEnable && !TpAllEnable && TotalEntered > HumanNum() / 2)
 	{
 		TpAllEnable = true;
-		PrintToChatAll("\x04[提示]\x01已有超过半数人到达安全屋,已可使用!tpall指令!");
+		PrintToChatAll("\x04[提示]\x01已有超过四分之三人到达安全屋,已可使用!tpall指令!");
 	}
 	return Plugin_Continue;
 }
 
 public Action:BottonUsed(Handle:event, String:name[], bool:dontBroadcast)  // Hook检查
 {
-	if (sm_TpAllEnable == 0)
-	{
-		return Plugin_Handled;
-	}
-
 	float timeF = GetGameTime();
 	decl String:buffer[10];
 	Format(buffer, 255, "%.0f", timeF);
@@ -466,7 +448,7 @@ public Action:votetimeout(Handle:Timer, any:client)
 			Foujue = false;
 			return Action:3;
 		}
-		else if (voteYES > voteNO)
+		else if (voteYES > voteNO * 3)
 		{
 			passvote = true;
 			for (int i = 1; i <= MaxClients; i++)
@@ -482,7 +464,7 @@ public Action:votetimeout(Handle:Timer, any:client)
 		}
 		else
 		{
-			PrintToChatAll("\x04[传送]\x03 投票不通过,请尝试说服其它玩家");
+			PrintToChatAll("\x04[传送]\x03 投票不通过,需要至少四分之三的人赞成,请尝试说服其它玩家");
 		}
 		VoteMenuClose();
 		return Action:4;

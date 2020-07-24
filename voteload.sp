@@ -659,6 +659,7 @@ public void onjump()
 		SetConVarInt(FindConVar("sm_auto_respawn"), 1, false, false);
 		SetConVarInt(FindConVar("sm_health_enable"), 1, false, false);
 		SetConVarInt(FindConVar("sm_tpall_enable"), 1, false, false);
+		SetConVarInt(FindConVar("l4d_bunnyhop_mode"), 1, false, false);
 		jumpon = true;
 	}
 }
@@ -671,6 +672,7 @@ public void offjump()
 		SetConVarInt(FindConVar("sm_auto_respawn"), 0, false, false);
 		SetConVarInt(FindConVar("sm_health_enable"), 0, false, false);
 		SetConVarInt(FindConVar("sm_tpall_enable"), 0, false, false);
+		SetConVarInt(FindConVar("l4d_bunnyhop_mode"), 0, false, false);
 
 		ResetConVar(FindConVar("director_no_bosses"), false, false);
 		ResetConVar(FindConVar("director_no_mobs"), false, false);

@@ -4,6 +4,7 @@
 bool server_hibernating = true;
 int thirdparty_count = 0;
 Handle g_hTimer_CheckEmpty;
+bool FirstSet = false;
 
 public Plugin:myinfo =
 {
@@ -18,12 +19,18 @@ public void OnPluginStart()
 {
 	RegAdminCmd("sm_setdefault", SetDefault, ADMFLAG_ROOT, "设置服务器默认值");
 	RegAdminCmd("sm_setall", SetAll, ADMFLAG_ROOT, "将服务器所有参数设为默认值");
+	RegAdminCmd("sm_setp", SetPara, ADMFLAG_ROOT, "设置自定义参数");
 
 	ServerCommand("map c1m1_hotel");
 	PrintToServer("加载提示1");
 }
 
 public OnMapStart() {
+	if (!FirstSet)
+	{
+		ServerCommand("sm_setp");
+		FirstSet = true;
+	}
 	thirdparty_count = 0;
 	Timer_CheckEmpty_Kill();
 	g_hTimer_CheckEmpty = CreateTimer(5.0, Timer_OnFeedDog, INVALID_HANDLE, TIMER_REPEAT);
@@ -74,9 +81,36 @@ public Action SetAll(int client, int args)
 	return Plugin_Continue;
 }
 
+public Action SetPara(int client, int args)
+{
+	PrintToServer("设置参数");
+	if (args == 0)
+	{
+		ServerCommand("sm_onhx");
+		ServerCommand("sm_onhw");
+		ServerCommand("sm_ontui");
+		ServerCommand("sm_on141");
+		ServerCommand("sm_mmn 4");
+		ServerCommand("sm_it 5");
+		ServerCommand("sm_onzc");
+		ServerCommand("sm_onammo");
+		ServerCheatCommand("z_difficulty Impossible");
+		SetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert"), 0.1, false, false);
+		PrintToChatAll("恢复参数一");
+		PrintToServer("恢复参数一");
+	}
+	else
+	{
+		char arg[4];
+		GetCmdArg(1, arg, sizeof(arg));
+		int num = StringToInt(arg, 10);
+		PrintToServer("%d", num);
+	}
+}
+
 public void SetVal()
 {
-	CheatCommand(0, "ent_fire", "l4d2_spawn_props_prop KillHierarchy");
+	ServerCheatCommand("ent_fire l4d2_spawn_props_prop KillHierarchy");
 	SetConVarInt(FindConVar("sb_all_bot_game"), 0);
 	SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 0);
 	SetConVarInt(FindConVar("sm_jumpmod"), 0);
@@ -86,43 +120,19 @@ public void SetVal()
 	SetConVarInt(FindConVar("sm_tpall_enable"), 0);
 	ServerCommand("sm_on141");
 	ServerCommand("sm_onif");
-	ServerCommand("sm_offhx");
+	// ServerCommand("sm_offhx");
 	ServerCommand("sm_onammo");
 	ServerCommand("sm_restore");
 	ServerCommand("sm_cvar mp_gamemode coop");
 	// ServerCommand("changelevel c1m1_hotel");
 }
 
-CheatCommand(client, char[] command, char[] arguments)
+ServerCheatCommand(char[] command)
 {
-	if (!client || !IsClientInGame(client))
-	{
-		int target = 1;
-		while (target <= MaxClients)
-		{
-			if (IsClientInGame(target))
-			{
-				client = target;
-				if (!client || !IsClientInGame(client))
-				{
-					return 0;
-				}
-			}
-			target++;
-		}
-		if (!client || !IsClientInGame(client))
-		{
-			return 0;
-		}
-	}
-	int userflags = GetUserFlagBits(client);
-	SetUserFlagBits(client, 16384);
-	int flags = GetCommandFlags(command);
+	new flags = GetCommandFlags(command);
 	SetCommandFlags(command, flags & -16385);
-	FakeClientCommand(client, "%s %s", command, arguments);
+	ServerCommand(command);
 	SetCommandFlags(command, flags);
-	SetUserFlagBits(client, userflags);
-	return 0;
 }
 
 Timer_CheckEmpty_Kill() {
@@ -148,7 +158,7 @@ public Action Timer_OnFeedDog(Handle timer, any param)
 			
 			if (!isOfficialMap)
 			{
-				ForceChangeLevel("c1m1_hotel", "Server idle + running third-party map, ready to switch to official maps");
+				ForceChangeLevel("c5m1_waterfront", "Server idle + running third-party map, ready to switch to official maps");
 			}
 			else
 			{

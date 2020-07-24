@@ -8,16 +8,17 @@ new Handle:hR_ACMHint;
 new bool:R_ACMHint;
 new Handle:hR_ACMDelay;
 new Float:R_ACMDelay;
-new String:R_Next_Maps[64];
-new String:R_Next_Name[64];
+new String:R_Next_Maps[MAX_NAME_LENGTH];
+new String:R_Next_Name[MAX_NAME_LENGTH];
 new String:EN_name_total[1000][64];
 new String:CHI_name_total[1000][64];
 new String:EN_name[20][500][64];
 new String:CHI_name[20][500][64];
+new String:CHI_Menu[30][64];
 new bool:Map_exist_total[1000];
 new bool:Map_exist[20][500];
-new String:votesmaps[MAX_NAME_LENGTH];
 new String:votesmapsname[MAX_NAME_LENGTH];
+new String:votesmaps[MAX_NAME_LENGTH];
 new Handle:g_hVoteMenu = INVALID_HANDLE;
 new Handle:NeedAdmin;
 new bool:Foujue;
@@ -28,10 +29,6 @@ new bool:FirstWin = true;
 #define VOTE_YES "yes"
 new Votey = 0;
 new Voten = 0;
-
-new bool:FirstStart = false;
-new Handle:RestartTimer;
-new timeoutt = 0;
 
 public Plugin:myinfo =
 {
@@ -56,7 +53,8 @@ public OnPluginStart()
 	R_ACMHint = GetConVarBool(hR_ACMHint);
 	R_ACMDelay = GetConVarFloat(hR_ACMDelay);
 
-	LoadMapFile()
+	LoadMapFile();
+	LoadMenuFile();
 
 	HookEvent("finale_win", RACMEvent_FinaleWin, EventHookMode:2);
 	HookEvent("player_activate", RACMEvent_activate, EventHookMode:1);
@@ -67,7 +65,7 @@ public OnPluginStart()
 
 LoadMapFile()
 {
-	new Handle:hFile = OpenConfig();
+	new Handle:hFile = OpenConfigMap();
 	decl String:sTemp[5];
 	new String:catalog[3];
 	new catalogInt;
@@ -111,7 +109,54 @@ LoadMapFile()
 	CloseHandle(hFile);
 }
 
-Handle:OpenConfig()
+LoadMenuFile()
+{
+	new Handle:hFile = OpenConfigMenu();
+	decl String:sTemp[5];
+	new i = 1;
+	while (i <= 30)
+	{
+		IntToString(i, sTemp, 8);
+		if (KvJumpToKey(hFile, sTemp, false))
+		{
+			KvGetString(hFile, "菜单名", CHI_Menu[i], 64, "");
+			TrimString(sTemp);
+			if (strlen(sTemp))
+			{
+				KvRewind(hFile);
+			}
+			else
+			{
+				break;
+			}
+		}
+		i++;
+	}
+	CloseHandle(hFile);
+}
+
+Handle:OpenConfigMenu()
+{
+	decl String:sPath[256];
+	BuildPath(PathType:0, sPath, 256, "%s", "data/l4d2_abbw_menu.txt");
+	if (!FileExists(sPath, false, "GAME"))
+	{
+		SetFailState("找不到文件 data/l4d2_abbw_menu.txt");
+	}
+	else
+	{
+		PrintToServer("[提示] 文件数据 data/l4d2_abbw_menu.txt 加载成功");
+	}
+	new Handle:hFile = CreateKeyValues("菜单数据", "", "");
+	if (!FileToKeyValues(hFile, sPath))
+	{
+		CloseHandle(hFile);
+		SetFailState("无法载入 data/l4d2_abbw_menu.txt'");
+	}
+	return hFile;
+}
+
+Handle:OpenConfigMap()
 {
 	decl String:sPath[256];
 	BuildPath(PathType:0, sPath, 256, "%s", "data/l4d2_abbw_map.txt");
@@ -121,9 +166,9 @@ Handle:OpenConfig()
 	}
 	else
 	{
-		PrintToServer("[笨蛋海绵提示] 文件数据 data/l4d2_abbw_map.txt 加载成功");
+		PrintToServer("[提示] 文件数据 data/l4d2_abbw_map.txt 加载成功");
 	}
-	new Handle:hFile = CreateKeyValues("第三方图数据 -by 笨蛋海绵", "", "");
+	new Handle:hFile = CreateKeyValues("第三方图数据", "", "");
 	if (!FileToKeyValues(hFile, sPath))
 	{
 		CloseHandle(hFile);
@@ -144,27 +189,6 @@ public OnMapStart()
 	}
 	R_ACMHint = GetConVarBool(hR_ACMHint);
 	R_ACMDelay = GetConVarFloat(hR_ACMDelay);
-
-	if (FirstStart){
-		PrintToServer("开始60秒重启倒计时");
-		RestartTimer = CreateTimer(1.0, RestartAnnounce, _, TIMER_REPEAT);
-		FirstStart = false;
-	}
-	timeoutt = 0;
-}
-
-public Action:RestartAnnounce(Handle:timer)
-{
-	timeoutt = timeoutt + 1;
-	if (timeoutt <= 60){
-		PrintHintTextToAll("初始关卡重启倒计时:还有 %d 秒.", 60 - timeoutt);
-	}
-	else{
-		if (RestartTimer) KillTimer(RestartTimer);
-		timeoutt = 0;
-		ServerCommand("sm_cvar mp_restartgame 1");
-		PrintToChatAll("\x03[提示] \x04关卡已重启!");
-	}
 }
 
 public RACMEvent_activate(Handle:event, String:name[], bool:dontBroadcast)
@@ -266,7 +290,6 @@ public Action:Command_Getnextmap(client, args)
 
 public Action:RACMapsN(Handle:timer)
 {
-	FirstStart = true;
 	ServerCommand("changelevel %s", R_Next_Maps);
 	return Action:0;
 }
@@ -300,53 +323,43 @@ public Action:Command_VotenextmapsMenu(client, args)
 {
 	if (args == 0)
 	{
-		new Handle:menu = CreateMenu(CatalogChoosed);
+		if (!TestVoteDelay(client))
+		{
+			return Plugin_Handled;
+		}
 		
+		Handle menu = CreateMenu(CatalogChoosed);
+		char Catalog[8];
+	
 		SetMenuTitle(menu, "请选择地图类别");
 		AddMenuItem(menu, "-1", "刷新地图缓存");
 		AddMenuItem(menu, "-2", "刷新地图列表");
-		AddMenuItem(menu, "19", "每周地图");
-		AddMenuItem(menu, "18", "旧本周地图");
-		AddMenuItem(menu, "17", "金秋限时活动");
-		AddMenuItem(menu, "16", "近期新增");
 		AddMenuItem(menu, "0", "所有");
-		AddMenuItem(menu, "15", "所有-评分降序");
-		AddMenuItem(menu, "1", "坑爹图");
-		AddMenuItem(menu, "2", "风景图");
-		AddMenuItem(menu, "3", "训练图");
-		AddMenuItem(menu, "14", "寂静岭");
-		AddMenuItem(menu, "13", "清明节");
-		AddMenuItem(menu, "12", "新地图");
-		AddMenuItem(menu, "11", "12月30日新地图");
-		AddMenuItem(menu, "10", "12月21日新地图");
-		AddMenuItem(menu, "9", "12月14日新地图");
-		AddMenuItem(menu, "8", "12月07日新地图");
-		AddMenuItem(menu, "7", "11月30日新地图");
-		AddMenuItem(menu, "6", "11月23日新地图");
-		AddMenuItem(menu, "5", "万圣节推荐");
-		AddMenuItem(menu, "4", "新图");
+		AddMenuItem(menu, "1", "所有-评分降序");
+		for (int i = 29; i >=2; i--){
+			if (!StrEqual("", CHI_Menu[i], true))
+			{
+				IntToString(i, Catalog, sizeof(Catalog));
+				AddMenuItem(menu, Catalog, CHI_Menu[i]);
+			}
+		}
 
 		SetMenuExitButton(menu, true);
 		DisplayMenu(menu, client, MENU_TIME_FOREVER);
 	}
 	else if (args == 1)
 	{
-		GetCmdArg(1, R_Next_Name, sizeof(R_Next_Name));
-		GetCmdArg(1, R_Next_Maps, sizeof(R_Next_Maps));
-		PrintToChatAll("\x03[提示] \x04 下张地变为 \x05%s", R_Next_Name);
-		PrintToChatAll("\x04 %s", R_Next_Maps);
+		GetCmdArg(1, votesmapsname, sizeof(votesmapsname));
+		GetCmdArg(2, votesmaps, sizeof(votesmaps));
+		PrintToChatAll("\x05[提示] \x04%N 想要将下一张图更换为 \x05 %s", client, votesmapsname);
+		DisplayVoteMapsMenu(client);
 	}
 	else if (args == 2)
 	{
-		VotedMap = true;
-		char text[256];
-		GetCmdArgString(text, sizeof(text));
-
-		int pos = BreakString(text, R_Next_Name, sizeof(R_Next_Name));
-		BreakString(text[pos], R_Next_Maps, sizeof(R_Next_Maps));
-
-		PrintToChatAll("\x03[提示] \x04 下张地变为 \x05%s", R_Next_Name);
-		PrintToChatAll("\x04 %s", R_Next_Maps);
+		GetCmdArg(1, votesmapsname, sizeof(votesmapsname));
+		GetCmdArg(2, votesmaps, sizeof(votesmaps));
+		PrintToChatAll("\x05[提示] \x04%N 想要将下一张图更换为 \x05 %s", client, votesmapsname);
+		DisplayVoteMapsMenu(client);
 	}
 
 	return Plugin_Handled;
@@ -377,6 +390,7 @@ public CatalogChoosed(Handle:menu, MenuAction:action, client, itemNum)
 		if (catalog == -2)
 		{
 			LoadMapFile();
+			LoadMenuFile();
 			PrintToChat(client, "地图列表已刷新");
 			return;
 		}
@@ -429,12 +443,13 @@ public MapMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 {
 	if ( action == MenuAction_Select ) 
 	{
-		new String:info[32] , String:name[32];
+		char info[32];
+		char name[32];
 		GetMenuItem(menu, itemNum, info, sizeof(info), _, name, sizeof(name));
 		votesmaps = info;
 		votesmapsname = name;
 		PrintToChatAll("\x05[提示] \x04%N 想要将下一张图更换为 \x05 %s", client, votesmapsname);
-		DisplayVoteMapsMenu(client);		
+		DisplayVoteMapsMenu(client);
 	}
 	if (action == MenuAction_Cancel)
 	{
@@ -524,8 +539,8 @@ public Handler_VoteCallback(Handle:menu, MenuAction:action, param1, param2)
 			PrintToChatAll("[提示] 投票通过");
 			CreateTimer(2.0, VoteEndDelay);
 			VotedMap = true;
-			R_Next_Maps = votesmaps;
 			R_Next_Name = votesmapsname;
+			R_Next_Maps = votesmaps;
 			PrintToChatAll("\x03[提示] \x04 下张地变为 \x05%s", votesmapsname);
 			PrintToChatAll("\x04 %s", votesmaps);
 			LogMessage("投票下张图 %s %s 通过", votesmapsname, votesmaps);

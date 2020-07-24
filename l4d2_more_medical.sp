@@ -26,11 +26,12 @@ public void OnPluginStart()
 	HookEvent("map_transition", Event_MMNMapTransition, EventHookMode_PostNoCopy);
 	hMoremedicals = CreateConVar("L4D2_More_Medical", "1", "医疗补给倍数[包&药&针&近战](例3倍表示一个包可以拿3次)", 0, true, 1.0, true, 99.0);
 	hOA_MNN = CreateConVar("Only_Admin", "1", "[0=所有人|1=仅管理员]可使用命令", 0, true, 0.0, true, 1.0);
+	HookConVarChange(hOA_MNN, ConVarChanged);
 	AutoExecConfig(true, "l4d2_more_medical", "sourcemod");
 	Mormedicals = GetConVarInt(hMoremedicals);
+	OA_MNN = GetConVarBool(hOA_MNN);
 	RCMcheck = false;
 	RCMFSpawn = false;
-	OA_MNN = GetConVarBool(hOA_MNN);
 }
 
 public void OnMapStart()
@@ -44,6 +45,12 @@ public void OnMapStart()
 			Mormedicals = 1;
 		}
 	}
+}
+
+public void ConVarChanged(Handle convar, const char[] oldValue, const char[] newValue)
+{
+	Mormedicals = GetConVarInt(hMoremedicals);
+	OA_MNN = GetConVarBool(hOA_MNN);
 }
 
 public Action Event_MMNPlayerAct(Event event, char[] name, bool dontBroadcast)
@@ -83,10 +90,19 @@ public Action Event_MMNMapTransition(Event event, char[] name, bool dontBroadcas
 
 public Action MMNNumsetcheck(client, args)
 {
-	if (OA_MNN && GetUserFlagBits(client))
+	if (OA_MNN && !GetUserFlagBits(client) && client != 0)
 	{
 		ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 		return Plugin_Continue;
+	}
+	if (args > 0)
+	{
+		char arg[4];
+		GetCmdArg(1, arg, sizeof(arg));
+		int num = StringToInt(arg, 10);
+		Mormedicals = num;
+		RCMcheck = true;
+		CreateTimer(1.0, MMNsRepDelays, any:0, 0);
 	}
 	rDisplayMMNMenu(client);
 	return Plugin_Continue;
@@ -101,7 +117,7 @@ rDisplayMMNMenu(client)
 	new i = 1;
 	while (i <= 6)
 	{
-		Format(nameno, 3, "%i", i);
+		Format(nameno, 3, "%d 倍", i);
 		AddMenuItem(menu, nameno, namelist, 0);
 		i++;
 	}

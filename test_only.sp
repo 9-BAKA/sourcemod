@@ -30,3 +30,33 @@ public Action Test(int client, int args)
 	return Plugin_Continue;
 }
 
+public void OnClientPostAdminCheck(int client)
+{
+	if (!IsFakeClient(client))
+		PrintToServer("[Test]OnClientPostAdminCheck, %d, %d", IsClientConnected(client), IsClientInGame(client));
+}
+
+public void OnClientConnected(int client)
+{
+	if (!IsFakeClient(client))
+    	PrintToServer("[Test]OnClientConnected, %d, %d", IsClientConnected(client), IsClientInGame(client));
+}
+
+public void OnClientPutInServer(int client)
+{
+	if (!IsFakeClient(client))
+    	PrintToServer("[Test]OnClientPutInServer, %d, %d", IsClientConnected(client), IsClientInGame(client));
+}
+
+public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
+{
+	if (!IsFakeClient(client))
+		PrintToServer("[Test]OnClientConnect: %d, %s, %d", client, rejectmsg, maxlen);
+	return true;
+}
+
+public void OnClientAuthorized(int client, const char[] auth)
+{
+	if (!IsFakeClient(client))
+    	PrintToServer("[Test]OnClientAuthorized, %d, %d", IsClientConnected(client), IsClientInGame(client));
+}

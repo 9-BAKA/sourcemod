@@ -38,6 +38,7 @@ public OnClientSpeakingEx(client)
 {
     char buffer[1024];
     player_speaking[client] = true;
+    PrintToChatAll("正在说话");  // 这行都不执行
     if (voice_show_enable)
     {
         for (int i = 0; i < MAXPLAYERS + 1; i++)
@@ -53,6 +54,7 @@ public OnClientSpeakingEx(client)
 
 public OnClientSpeakingEnd(client)
 {
+    PrintToChatAll("结束说话");  // 这行也不执行
     player_speaking[client] = false;
 }
 
@@ -60,3 +62,6 @@ public OnClientDisconnect(client)
 {
 	player_speaking[client] = false;
 }
+
+
+// alliedmodders上有个限制说话人数的插件也没有效果，可能是dhook版本问题？但是我换回以前的版本也没有用，现在用的版本是DHooks (2.2.0-detours10)

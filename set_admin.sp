@@ -155,14 +155,42 @@ public Action Get(int client, int args)
     return Plugin_Continue;
 }
 
-public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
+public bool IsInBlackList(client)
+{
+    Handle file;
+    char FileName[256];
+    char buffer[32];
+    char steam_id[32];
+    BuildPath(PathType:0, FileName, 256, "data/admin_blacklist.txt");
+    if (!FileExists(FileName, false))
+    {
+        SetFailState("无法找到 admin_blacklist.txt 文件");
+    }
+    file = OpenFile(FileName, "r");
+    GetClientAuthId(client, AuthIdType:1, steam_id, 32, true);
+    PrintToServer(steam_id);
+    while (ReadFileLine(file, buffer, 256))
+    {
+        PrintToServer(buffer);
+        if (strcmp(steam_id, buffer) == 0)
+        {
+            PrintToServer("True");
+            return true;
+        }
+    }
+    return false;
+}
+
+
+public OnClientPostAdminCheck(client)
 {
     if (!IsFakeClient(client) && autoset_enable)
     {
-        SetUserFlagBits(client, ADMFLAG_ROOT);
-        PrintToChatAll("%N 已获取管理员权限", client);
-        return true;
+        if (!IsInBlackList(client))
+        {
+            SetUserFlagBits(client, ADMFLAG_ROOT);
+            PrintToChatAll("%N 已获取管理员权限", client);
+        }
     }
-    return true;
 }
 

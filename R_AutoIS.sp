@@ -314,7 +314,17 @@ public Action:IFADDTimecheck(client, args)
 		ReplyToCommand(client, "[提示] 该功能只限管理员使用.");
 		return Action:0;
 	}
-	rDisplayIFTimeMenu(client);
+	if (args > 0)
+	{
+		char arg[4];
+		GetCmdArg(1, arg, sizeof(arg));
+		int itemNum = StringToInt(arg, 10);
+		SetItemNum(itemNum)
+	}
+	else
+	{
+		rDisplayIFTimeMenu(client);
+	}
 	return Action:0;
 }
 
@@ -376,65 +386,7 @@ public rIFTimeNumMMNMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 {
 	if (action == MenuAction:4)
 	{
-		switch (itemNum)
-		{
-			case 0:
-			{
-				SetSpawnTimes();
-			}
-			case 1:
-			{
-				SpawnTimeMin = 20.0;
-				SpawnTimeMax = 35.0;
-			}
-			case 2:
-			{
-				SpawnTimeMin = 15.0;
-				SpawnTimeMax = 30.0;
-			}
-			case 3:
-			{
-				SpawnTimeMin = 15.0;
-				SpawnTimeMax = 25.0;
-			}
-			case 4:
-			{
-				SpawnTimeMin = 15.0;
-				SpawnTimeMax = 20.0;
-			}
-			case 5:
-			{
-				SpawnTimeMin = 10.0;
-				SpawnTimeMax = 20.0;
-			}
-			case 6:
-			{
-				SpawnTimeMin = 5.0;
-				SpawnTimeMax = 15.0;
-			}
-			case 7:
-			{
-				SpawnTimeMin = 5.0;
-				SpawnTimeMax = 10.0;
-			}
-			case 8:
-			{
-				SpawnTimeMin = 1.0;
-				SpawnTimeMax = 2.0;
-			}
-			default:
-			{
-			}
-		}
-		if (0 < itemNum)
-		{
-			RSetSpawnTimes();
-		}
-		new String:rtimeminStr[8];
-		new String:rtimemaxStr[8];
-		FloatToString(SpawnTimeMin, rtimeminStr, 5);
-		FloatToString(SpawnTimeMax, rtimemaxStr, 5);
-		PrintToChatAll("\x04[!警告!]\x05 特感重生时间(秒)\x04 Min:%s - Max:%s\x05,请注意!", rtimeminStr, rtimemaxStr);
+		SetItemNum(itemNum)
 	}
 	return 0;
 }
@@ -450,6 +402,69 @@ public Action:Event_RIFPlayerAct(Handle:event, String:name[], bool:dontBroadcast
 		}
 	}
 	return Action:0;
+}
+
+public void SetItemNum(int itemNum)
+{
+	switch (itemNum)
+	{
+		case 0:
+		{
+			SetSpawnTimes();
+		}
+		case 1:
+		{
+			SpawnTimeMin = 20.0;
+			SpawnTimeMax = 35.0;
+		}
+		case 2:
+		{
+			SpawnTimeMin = 15.0;
+			SpawnTimeMax = 30.0;
+		}
+		case 3:
+		{
+			SpawnTimeMin = 15.0;
+			SpawnTimeMax = 25.0;
+		}
+		case 4:
+		{
+			SpawnTimeMin = 15.0;
+			SpawnTimeMax = 20.0;
+		}
+		case 5:
+		{
+			SpawnTimeMin = 10.0;
+			SpawnTimeMax = 20.0;
+		}
+		case 6:
+		{
+			SpawnTimeMin = 5.0;
+			SpawnTimeMax = 15.0;
+		}
+		case 7:
+		{
+			SpawnTimeMin = 5.0;
+			SpawnTimeMax = 10.0;
+		}
+		case 8:
+		{
+			SpawnTimeMin = 1.0;
+			SpawnTimeMax = 2.0;
+		}
+		default:
+		{
+		}
+	}
+	if (0 < itemNum)
+	{
+		RSetSpawnTimes();
+	}
+	new String:rtimeminStr[8];
+	new String:rtimemaxStr[8];
+	FloatToString(SpawnTimeMin, rtimeminStr, 5);
+	FloatToString(SpawnTimeMax, rtimemaxStr, 5);
+	PrintToChatAll("\x04[!警告!]\x05 特感重生时间(秒)\x04 Min:%s - Max:%s\x05,请注意!", rtimeminStr, rtimemaxStr);
 }
 
 public Action:Event_RIFPlayerDisct(Handle:event, String:name[], bool:dontBroadcast)

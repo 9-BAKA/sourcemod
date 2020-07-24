@@ -38,14 +38,10 @@ public OnPluginStart()
 	RegConsoleCmd("sm_offhw", Offhwsets, "", 0);
 	// HookEvent("player_disconnect", RAEvent_PlayerDisct, EventHookMode:1);
 	HookEvent("item_pickup", RAweaponEvent_pickup, EventHookMode:1);
-	hOA_AT = CreateConVar("autoset_admin", "0", "[0=所有人|1=仅管理员|2=仅白名单]可使用命令(连跳除外)", 0, true, 0.0, true, 1.0);
-	AutoExecConfig(true, "r_autoset", "sourcemod");
-	Rautogive1 = false;
-	OA_AT = GetConVarBool(hOA_AT);
-
 	CreateConVar("l4d_bunnyhop_version", PLUGIN_VERSION, "version of bunnyhop+", FCVAR_NOTIFY);
 
-	hMode = CreateConVar("l4d_bunnyhop_mode", "1.0", "Plugin mode: (0)disabled (1)auto-bunnyhop (2)manual bunnyhop training", FCVAR_NOTIFY,true,0.0,true,2.0);
+	hOA_AT = CreateConVar("autoset_admin", "0", "[0=所有人|1=仅管理员|2=仅白名单]可使用命令(连跳除外)", 0, true, 0.0, true, 1.0);
+	hMode = CreateConVar("l4d_bunnyhop_mode", "0", "Plugin mode: (0)disabled (1)auto-bunnyhop (2)manual bunnyhop training", FCVAR_NOTIFY,true,0.0,true,2.0);
 	hMultiplier = CreateConVar("l4d_bunnyhop_multiplier","50.0", "Multiplier: set the value multiplied to the lateral velocity gain for each successful bunnyhop.", FCVAR_NOTIFY,true,0.0,true,200.0);
 	hLimit = CreateConVar("l4d_bunnyhop_limit", "300.0", "Limit: set player speed value at which lateral velocity no longer multiplies lateral velocity.", FCVAR_NOTIFY,true,0.0,true,500.0);
 	hOffset = CreateConVar("l4d_bunnyhop_delay", "0", "Cue offset: for manual mode, set integer value for how early the cue is to be heard. Higher values mean earlier cues.", FCVAR_NOTIFY,true,0.0,true,5.0);
@@ -53,6 +49,7 @@ public OnPluginStart()
 	for (int i = 0; i < MAXPLAYERS; i++){
 		bBunnyhopOff[i] = true;
 	}
+	Rautogive1 = false;
 
 	HookConVarChange(hOffset, ConVar_Delay);
 	HookEvent("player_jump_apex", Event_PlayerJumpApex);

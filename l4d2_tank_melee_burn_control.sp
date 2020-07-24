@@ -11,6 +11,7 @@ Handle g_TankMeleeControlPercent;
 Handle g_TankMeleeControlValue;
 Handle g_TankMeleeControlHint;
 
+Handle g_TankBurnControlEnable;
 Handle g_TankBurnControlType;
 Handle g_TankBurnControlTime;
 Handle g_TankBurnControlValue;
@@ -24,6 +25,7 @@ int sm_TankMeleeControlPercent;
 int sm_TankMeleeControlValue;
 int sm_TankMeleeControlHint;
 
+int sm_TankBurnControlEnable;
 int sm_TankBurnControlType;
 float sm_TankBurnControlTime;
 int sm_TankBurnControlValue;
@@ -43,13 +45,13 @@ public Plugin myinfo =
 
 public OnPluginStart()
 {
-	g_TankMeleeControlEnable = CreateConVar("sm_tank_melee_control_enable", "1", "启用、关闭坦克近战伤害控制功能", 0, true, 0.0, true, 1.0);
-	
-	g_TankMeleeControlType = CreateConVar("sm_tank_melee_control_type", "1", "坦克近战伤害控制功能类型，0为百分比，1为固定伤害", 0, true, 0.0, true, 1.0);
+	g_TankMeleeControlEnable = CreateConVar("sm_tank_melee_control_enable", "0", "启用、关闭坦克近战伤害控制功能", 0, true, 0.0, true, 1.0);
+	g_TankMeleeControlType = CreateConVar("sm_tank_melee_control_type", "2", "坦克近战伤害控制功能类型，0为百分比，1为固定伤害, 2为动态", 0, true, 0.0, true, 2.0);
 	g_TankMeleeControlPercent = CreateConVar("sm_tank_melee_control_percent", "2", "坦克近战伤害控制百分比量", 0, true, 0.0, true, 100.0);
 	g_TankMeleeControlValue = CreateConVar("sm_tank_melee_control_value", "100", "坦克近战伤害控制固定伤害量", 0, true, 0.0);
 	g_TankMeleeControlHint = CreateConVar("sm_tank_melee_control_hint", "1", "坦克近战伤害控制是否提示，0不提示，1提示框提示，2对话框提示", 0, true, 0.0, true, 2.0);
 
+	g_TankBurnControlEnable = CreateConVar("sm_tank_burn_control_enable", "0", "启用、关闭坦克点燃伤害控制功能", 0, true, 0.0, true, 1.0);
 	g_TankBurnControlType = CreateConVar("sm_tank_burn_control_type", "0", "坦克点燃伤害控制功能类型，0为时间，1为固定伤害", 0, true, 0.0, true, 1.0);
 	g_TankBurnControlTime = CreateConVar("sm_tank_burn_control_time", "100.0", "坦克点燃存活时间", 0, true, 0.0);
 	g_TankBurnControlValue = CreateConVar("sm_tank_burn_control_value", "80", "坦克点燃固定每秒伤害", 0, true, 0.0);
@@ -62,6 +64,7 @@ public OnPluginStart()
 	sm_TankMeleeControlValue = GetConVarInt(g_TankMeleeControlValue);
 	sm_TankMeleeControlHint = GetConVarInt(g_TankMeleeControlHint);
 
+	sm_TankBurnControlEnable = GetConVarInt(g_TankBurnControlEnable);
 	sm_TankBurnControlType = GetConVarInt(g_TankBurnControlType);
 	sm_TankBurnControlTime = GetConVarFloat(g_TankBurnControlTime);
 	sm_TankBurnControlValue = GetConVarInt(g_TankBurnControlValue);
@@ -73,6 +76,7 @@ public OnPluginStart()
 	HookConVarChange(g_TankMeleeControlPercent, ConVarChanged);
 	HookConVarChange(g_TankMeleeControlValue, ConVarChanged);
 	HookConVarChange(g_TankMeleeControlHint, ConVarChanged);
+	HookConVarChange(g_TankBurnControlEnable, ConVarChanged);
 	HookConVarChange(g_TankBurnControlType, ConVarChanged);
 	HookConVarChange(g_TankBurnControlTime, ConVarChanged);
 	HookConVarChange(g_TankBurnControlValue, ConVarChanged);
@@ -109,6 +113,7 @@ public void ConVarChanged(Handle convar, const char[] oldValue, const char[] new
 	sm_TankMeleeControlValue = GetConVarInt(g_TankMeleeControlValue);
 	sm_TankMeleeControlHint = GetConVarInt(g_TankMeleeControlHint);
 
+	sm_TankBurnControlEnable = GetConVarInt(g_TankBurnControlEnable);
 	sm_TankBurnControlType = GetConVarInt(g_TankMeleeControlType);
 	sm_TankBurnControlTime = GetConVarFloat(g_TankBurnControlTime);
 	sm_TankBurnControlValue = GetConVarInt(g_TankBurnControlValue);
@@ -177,12 +182,46 @@ void ChangeDamageMelee(float &damage, int victim, int attacker)
 		if (sm_TankMeleeControlHint == 2)
 			PrintToChat(attacker, "\x04[近战伤害控制]\x01对tank造成了\x05%dx01点伤害", sm_TankMeleeControlPercent);
 	}
+	if (sm_TankMeleeControlType == 2)
+	{
+		int numSurvivors = Survivors();
+		int percent = 5;
+		if (numSurvivors <= 4) percent = 5;
+		else if (numSurvivors <= 6) percent = 4;
+		else if (numSurvivors <= 8) percent = 3;
+		else percent = 2;
+		damage = float(max_health * percent / 100);
+		// PrintToChatAll("伤害：%.1f", damage);
+		if (percent != 5)
+		{
+			if (sm_TankMeleeControlHint == 1)
+				PrintHintText(attacker, "[近战伤害控制]对tank造成了总血量%d%%%%的伤害", percent);
+			if (sm_TankMeleeControlHint == 2)
+				PrintToChat(attacker, "\x04[近战伤害控制]\x01对tank造成了总血量\x05%d%%\x01的伤害", percent);
+		}
+	}
 }
+
+public int Survivors()
+{
+	int numSurvivors = 0;
+	int i = 1;
+	while (i <= MaxClients)
+	{
+		if (IsClientInGame(i) && (GetClientTeam(i) == 2 || GetClientTeam(i) == 1))
+		{
+			numSurvivors++;
+		}
+		i++;
+	}
+	return numSurvivors;
+}
+
 
 public TankOnFire(Handle event, char[] name, bool dontBroadcast)
 {
 	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (!sm_TankMeleeControlEnable)
+	if (!sm_TankBurnControlEnable)
 	{
 		return 0;
 	}
@@ -221,7 +260,6 @@ public TankOnFire(Handle event, char[] name, bool dontBroadcast)
 	{
 		int CurHealth = GetClientHealth(victim);
 		int DmgDone = GetEventInt(event, "dmg_health");
-		int max_health = GetEntProp(victim, Prop_Data, "m_iMaxHealth");
 		// 可在这里修改坦克受到的伤害
 		int FireDamage = sm_TankFireControlValue / 10;
 		int newHealth = CurHealth + DmgDone - FireDamage;

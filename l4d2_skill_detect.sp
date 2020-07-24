@@ -560,6 +560,8 @@ public OnPluginStart()
     g_hWitchTrie = CreateTrie();
     g_hRockTrie = CreateTrie();
     g_hCarTrie = CreateTrie();
+
+    AutoExecConfig(true, "l4d2_skill_detect", "sourcemod");
     
     if ( g_bLateLoad )
     {
