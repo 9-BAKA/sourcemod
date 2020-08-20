@@ -17,6 +17,7 @@ new bool:g_TpSlot[MAXPLAYERS+1];  // 记录当前tp信息，防止同时进行�
 new Float:g_LocationSlots[MAXPLAYERS+1][101][3];  // 存储玩家的位置
 int g_RevivePos[MAXPLAYERS+1];
 int Death_time[MAXPLAYERS+1];
+int Revive_Time[MAXPLAYERS+1];
 
 new String:g_Cvar_ChatPrefix[32];  // 消息前缀
 
@@ -45,7 +46,7 @@ public OnPluginStart()
 	g_hCvar_TeleportEnable = CreateConVar("sm_teleport_enable", "0", "是否开启传送", FCVAR_NOTIFY);
 	g_hCvar_RespawnEnabled = CreateConVar("sm_auto_respawn", "0", "是否开启自动复活", FCVAR_NOTIFY);
 	g_hCvar_SaveNum = CreateConVar("sm_save_num", "10", "存档个数(最多100，最少3个)", FCVAR_NOTIFY);
-	g_hCvar_ReviveTime = CreateConVar("sm_respawn_time", "10.0", "自动复活时长(5.0-60.0秒)", FCVAR_NOTIFY);
+	g_hCvar_ReviveTime = CreateConVar("sm_respawn_time", "10.0", "自动复活时长(5.0-300.0秒)", FCVAR_NOTIFY);
 
 	AutoExecConfig(true, "teleport");
 
@@ -132,11 +133,16 @@ public Action:AutoRespawn(Handle:event, String:event_name[], bool:dontBroadcast)
 			if (teleEnable == 1)
 			{
 				ShowReviveMenu(clientId, timeT-1);
-				PrintHintText(clientId, "您已经死亡，将于%i秒后重生并传送到上个存档点\n记得使用!save保存新的存档点", timeT); // 应当动态显示
+				PrintToChat(clientId, "\x03您已经死亡，将于\x04%i\03秒后重生并传送到上个存档点", timeT);
+				PrintToChat(clientId, "\x03记得使用\x04!save\03保存新的存档点，读点请用\x04!tp", timeT);
+				PrintToChat(clientId, "\x03更多指令请按 \x04H键 \03查看", timeT);
+				Revive_Time[clientId] = timeT;
+				CreateTimer(1.0, HintTimeout, clientId, TIMER_REPEAT);  // 应当动态显示
 			}
 			else
 			{
-				PrintHintText(clientId, "您已经死亡，将于%i秒后重生", timeT);
+				Revive_Time[clientId] = timeT;
+				CreateTimer(1.0, HintTimeout, clientId, TIMER_REPEAT);  // 应当动态显示
 			}
 			CreateTimer(reviveTime, ReviveHum, clientId, 0);  // 5秒后进行复活操作
 		}
@@ -157,6 +163,15 @@ public Action:AutoRespawn(Handle:event, String:event_name[], bool:dontBroadcast)
 	{
 		PrintToChat(clientId, "\x04服务器暂时没有开启自动复活，请输入!fuhuo手动复活");
 	}
+	return Plugin_Continue;
+}
+
+public Action HintTimeout(Handle timer, int client)
+{
+	if (teleEnable == 1) PrintHintText(client, "您已经死亡，将于%i秒后重生并传送到上一存档点", Revive_Time[client]);
+	else PrintHintText(client, "您已经死亡，将于%i秒后重生", Revive_Time[client]);
+	Revive_Time[client] -= 1;
+	if (Revive_Time[client] == 0) return Plugin_Stop;
 	return Plugin_Continue;
 }
 

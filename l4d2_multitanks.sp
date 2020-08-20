@@ -37,8 +37,8 @@ public OnPluginStart()
 	HookConVarChange(g_multitank_enable, ConVarChanged);
 	HookConVarChange(g_multitank_count, ConVarChanged);
 	HookConVarChange(hOA_AT, ConVarChanged);
-	HookEvent("round_start", Event_CheckStart, EventHookMode:1);
-	HookEvent("tank_spawn", OnTankSpawn);
+	HookEvent("round_start", Event_CheckStart, EventHookMode_Post);
+	HookEvent("tank_spawn", Event_TankSpawn, EventHookMode_Post);
 }
 
 public OnMapStart()
@@ -149,27 +149,18 @@ public SelectMenuHandler(Handle menu, MenuAction action, int client, int positio
 	}
 }
 
-public Action:OnTankSpawn(Handle:event, String:event_name[], bool:dontBroadcast)
+public void Event_TankSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!tank_spawn_multi_enable) return;
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (!IsClientInGame(client)) return;
-	if (GetClientTeam(client) != 3)
-	{
-		return;
-	}
 
-	if (GetEntProp(client, Prop_Send, "m_zombieClass") == ZOMBIECLASS_TANK)
+	if (tank_spawn_buffer > 0)
 	{
-		if (tank_spawn_buffer > 0)
-		{
-			tank_spawn_buffer = tank_spawn_buffer - 1;
-		}
-		else
-		{
-			tank_spawn_buffer = tank_spawn_multi - 1;
-			SpawnMoreTank(tank_spawn_multi - 1);
-		}
+		tank_spawn_buffer = tank_spawn_buffer - 1;
+	}
+	else
+	{
+		tank_spawn_buffer = tank_spawn_multi - 1;
+		SpawnMoreTank(tank_spawn_multi - 1);
 	}
 }
 
@@ -193,7 +184,20 @@ public void SpawnMoreTank(int count)
 	int iFlags = GetCommandFlags("z_spawn_old");
 	SetCommandFlags("z_spawn_old", iFlags & ~FCVAR_CHEAT);
 	for (int i = 0; i < count; i++)
-		FakeClientCommand(iCommandExecuter, "z_spawn_old tank auto");
+		CheatCommand(iCommandExecuter, "z_spawn", "tank", "auto");
 	SetCommandFlags("z_spawn_old", iFlags);
 }
 
+stock void CheatCommand(int client, char [] command, char arguments[]="", char arguments1[]="")
+{
+	if(client)
+	{
+		int userflags = GetUserFlagBits(client);
+		SetUserFlagBits(client, ADMFLAG_ROOT);
+		int flags = GetCommandFlags(command);
+		SetCommandFlags(command, flags & ~FCVAR_CHEAT);
+		FakeClientCommand(client, "%s %s %s", command, arguments, arguments1);
+		SetCommandFlags(command, flags);
+		SetUserFlagBits(client, userflags);
+	}
+}

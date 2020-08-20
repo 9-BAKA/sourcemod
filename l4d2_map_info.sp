@@ -31,6 +31,7 @@ public void OnPluginStart()
     RegConsoleCmd("sm_mapinfo", MapInfo, "获取当前地图信息,1:Menu,2:Chat,3:Menu&Chat");
     RegConsoleCmd("sm_mapinfoall", MapInfoAll, "将当前地图信息展示给所有人,1:Menu,2:Chat,3:Menu&Chat");
     RegConsoleCmd("sm_mapname", MapName, "获取当前地图名字");
+    RegConsoleCmd("sm_maptest", MapTest, "测试中文输出");
 
     g_hCvarReport = CreateConVar("sm_map_info_report", "1", "地图信息报告类型,1:只是第一关,2:所有关", 0);
 
@@ -64,6 +65,24 @@ public void OnMapStart()
         current_index[i] = 0;
     info_exist = -1;
     CreateTimer(10.0, DelayMapInfoCheck);
+}
+
+public Action MapTest(int client, int args)
+{
+    if (args == 0)
+    {
+        PrintToChatAll(map_intro);
+    }
+    else
+    {
+        char arg[6];
+        GetCmdArg(1, arg, sizeof(arg));
+        int len = StringToInt(arg);
+        char temp[256];
+        strcopy(temp, len, map_intro);
+        PrintToChatAll(temp);
+        PrintToServer(temp);
+    }
 }
 
 public void OnClientPutInServer(int client)
@@ -458,39 +477,6 @@ stock terminateUTF8String(char[] buffer, const int maxlength = -1){
     }
     return 0;
 }
-
-// public Action ShowMapInfoMenu(char[] intro)
-// {
-//     // info_exist = MapInfoExist();
-//     // if (info_exist)
-//     // {
-//     //     PrintToChatAll("当前地图暂无简介");
-//     //     return Plugin_Handled;
-//     // }
-
-//     Menu menu = new Menu(MapInfoMenuHandler, MENU_ACTIONS_ALL);
-//     menu.SetTitle("地图信息:");
-
-//     int total_len = strlen(intro);
-//     int start = 0;
-//     char buffer[MAX_LINE_WIDTH];
-//     while (start < total_len)
-//     {
-//         strcopy(buffer, MAX_LINE_WIDTH, intro[start]);
-//         terminateUTF8String(buffer);
-//         start = start + strlen(buffer);
-//         menu.AddItem("0", buffer);
-//     }
-//     menu.ExitButton = true;
-//     for (int i = 1; i <= MaxClients; i++)
-//     {
-//         if (IsClientInGame(i) && !IsFakeClient(i))
-//         {
-//             menu.Display(i, MENU_TIME_FOREVER);
-//         }
-//     }
-//     return Plugin_Handled;
-// }
 
 public Action ShowMapInfoMenu(int client)
 {

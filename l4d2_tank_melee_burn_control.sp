@@ -135,6 +135,8 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 {
 	// PrintToChatAll("伤害 火伤：%d", damage);
 	// PrintToChatAll("伤害 火伤：%.1f", damage);
+	// PrintToChatAll("伤害：%.1f", damage);
+	// 经测试无法正确获得火伤，全部返回为1.0伤害
 	if (!sm_TankMeleeControlEnable)
 	{
 		return Plugin_Continue;
@@ -249,12 +251,12 @@ public TankOnFire(Handle event, char[] name, bool dontBroadcast)
 		}
 		if (sm_TankBurnControlType == 1)
 		{
-			BurnDamage = sm_TankBurnControlValue;
+			BurnDamage = sm_TankBurnControlValue / 10;
 		}
-		// PrintToChatAll("点燃伤害：%d", BurnDamage);
 		int newHealth = CurHealth + DmgDone - BurnDamage;
 		if (newHealth < 0) newHealth = 0;
 		SetEntityHealth(victim, newHealth);
+		// PrintToChatAll("当前血量：%d，原伤害：%d，点燃伤害：%d，最终血量：%d", CurHealth, DmgDone, BurnDamage, newHealth);
 	}
 	if (strcmp(weapon, "inferno", true) == 0)
 	{
@@ -265,6 +267,7 @@ public TankOnFire(Handle event, char[] name, bool dontBroadcast)
 		int newHealth = CurHealth + DmgDone - FireDamage;
 		if (newHealth < 0) newHealth = 0;
 		SetEntityHealth(victim, newHealth);
+		// PrintToChatAll("当前血量：%d，原伤害：%d，火瓶伤害：%d，最终血量：%d", CurHealth, DmgDone, FireDamage, newHealth);
 	}
 	return 0;
 }

@@ -799,7 +799,7 @@ public AnyHp()
 //================================
 CheckVotes()
 {
-	PrintHintTextToAll("同意: \x04%i\n不同意: \x04%i", Votey, Voten);
+	PrintHintTextToAll("同意: %i\n不同意: %i", Votey, Voten);
 }
 public Action:VoteEndDelay(Handle:timer)
 {

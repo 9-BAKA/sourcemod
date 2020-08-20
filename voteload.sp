@@ -582,30 +582,30 @@ public void PassVote()
 	else if(selected_map == map_number + 1)  // 随机地图
 	{
 		CheatCommand(0, "ent_fire", "l4d2_spawn_props_prop KillHierarchy");
-		onjump();
 		CreateTimer(1.0, RandomLoad, 0, 2);
 		SetConVarInt(hJumpmod, -1);
+		onjump();
 		PrintToChatAll("\x03[跳跃] \x04选择随机跳跃地图");
 	}
 	else if(selected_map == map_number + 2)  // 关闭
 	{
 		CheatCommand(0, "ent_fire", "l4d2_spawn_props_prop KillHierarchy");
-		offjump();
 		SetConVarInt(hJumpmod, 0);
+		offjump();
 		PrintToChatAll("\x03[跳跃] \x04已关闭跳跃模式");
 	}
 	else if(selected_map == map_number + 3)  // 传送参数
 	{
 		if(jumpon)
 		{
-			offjump();
 			SetConVarInt(hJumpmod, 0);
+			offjump();
 			PrintToChatAll("\x03[跳跃] \x04已关闭传送参数");
 		}
 		else
 		{
-			onjump();
 			SetConVarInt(hJumpmod, -2);
+			onjump();
 			SetConVarInt(FindConVar("sm_auto_respawn"), 2, false, false);
 			PrintToChatAll("\x03[跳跃] \x04已开启传送参数");
 		}
@@ -649,10 +649,6 @@ public int HumanNum()
 
 public void onjump()
 {
-	if(sm_jumpmod != 0 && sm_jumpmod != -2)
-	{
-		CreateTimer(2.0, KillAllInfected, 0, 2);
-	}
 	if(!jumpon)
 	{
 		SetConVarInt(FindConVar("sm_teleport_enable"), 1, false, false);
@@ -660,6 +656,8 @@ public void onjump()
 		SetConVarInt(FindConVar("sm_health_enable"), 1, false, false);
 		SetConVarInt(FindConVar("sm_tpall_enable"), 1, false, false);
 		SetConVarInt(FindConVar("l4d_bunnyhop_mode"), 1, false, false);
+
+		ServerCommand("sm_offif");
 		jumpon = true;
 	}
 }
@@ -674,17 +672,7 @@ public void offjump()
 		SetConVarInt(FindConVar("sm_tpall_enable"), 0, false, false);
 		SetConVarInt(FindConVar("l4d_bunnyhop_mode"), 0, false, false);
 
-		ResetConVar(FindConVar("director_no_bosses"), false, false);
-		ResetConVar(FindConVar("director_no_mobs"), false, false);
-		ResetConVar(FindConVar("z_common_limit"), false, false);
-		ResetConVar(FindConVar("z_boomer_limit"), false, false);
-		ResetConVar(FindConVar("z_charger_limit"), false, false);
-		ResetConVar(FindConVar("z_hunter_limit"), false, false);
-		ResetConVar(FindConVar("z_jockey_limit"), false, false);
-		ResetConVar(FindConVar("z_smoker_limit"), false, false);
-		ResetConVar(FindConVar("z_spitter_limit"), false, false);  
-		
-		//CheatCommand(0, "director_start", "");
+		ServerCommand("sm_onif");
 		jumpon = false;
 	}
 }
@@ -704,38 +692,15 @@ public Action CmdOnIf(int client, int args)
 	PrintToChatAll("恢复生成僵尸");
 }
 
-public Action KillAllInfected(Handle timer)
-{
-	SetConVarInt(FindConVar("director_no_bosses"), 1, false, false);
-	SetConVarInt(FindConVar("director_no_mobs"), 1, false, false);
-	SetConVarInt(FindConVar("z_common_limit"), 0, false, false);
-	SetConVarInt(FindConVar("z_boomer_limit"), 0, false, false);
-	SetConVarInt(FindConVar("z_charger_limit"), 0, false, false);
-	SetConVarInt(FindConVar("z_hunter_limit"), 0, false, false);
-	SetConVarInt(FindConVar("z_jockey_limit"), 0, false, false);
-	SetConVarInt(FindConVar("z_smoker_limit"), 0, false, false);
-	SetConVarInt(FindConVar("z_spitter_limit"), 0, false, false); 
-	int i = 1
-	while (i <= MaxClients)
-	{
-		if (IsClientInGame(i))
-		{
-			if (GetClientTeam(i) == 3)
-			{
-				ForcePlayerSuicide(i);
-			}
-		}
-		i++;
-	}
-	CheatCommand(0, "ent_remove_all", "infected");
-	//CheatCommand(0, "director_stop", "");
-	PrintToServer("停止生成僵尸");
-	PrintToChatAll("停止生成僵尸");
-}
-
 public Action CmdOffIf(int client, int args)
 {
 	ServerCommand("sm_off14");
+	CreateTimer(0.1, DelayOffSI);
+	return Plugin_Continue;
+}
+
+public Action DelayOffSI(Handle timer, int client)
+{
 	SetConVarInt(FindConVar("director_no_bosses"), 1, false, false);
 	SetConVarInt(FindConVar("director_no_mobs"), 1, false, false);
 	SetConVarInt(FindConVar("z_common_limit"), 0, false, false);
@@ -761,5 +726,4 @@ public Action CmdOffIf(int client, int args)
 	//CheatCommand(0, "director_stop", "");
 	PrintToServer("停止生成僵尸");
 	PrintToChatAll("停止生成僵尸");
-	return Plugin_Continue;
 }
