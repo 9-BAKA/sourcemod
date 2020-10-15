@@ -5,7 +5,7 @@
 #define PLUGIN_AUTHOR				"BAKA."
 #define PLUGIN_DESCRIPTION	"存档，传送，传送到队友身边，死亡自动复活"
 #define PLUGIN_VERSION			"1.0"
-#define PLUGIN_URL					"47.94.208.140"
+#define PLUGIN_URL					"baka.cirno.cn"
 
 new Handle:g_hCvar_ChatPrefix;
 new Handle:g_hCvar_TeleportEnable;

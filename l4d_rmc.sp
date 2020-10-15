@@ -200,13 +200,10 @@ public Action DisKickClient(Handle timer)
         int i = MaxClients;
         while (i > 0 && playernum > 4 && botnum > specnum)
         {
-            if (IsClientInGame(i))
+            if (IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == 2)
             {
-                if (IsFakeClient(i) && GetClientTeam(i) == 2)
-                {
-                    KickClient(i, "踢出多余电脑");
-                    botnum--;
-                }
+                KickClient(i, "踢出多余电脑");
+                botnum--;
             }
             i--;
         }
@@ -347,7 +344,10 @@ public Action Gotoaway(int client, int argCount)
         {
             ChangeClientTeam(client, 1);
         }
-        PrintToChat(client, "\x05[失败:]\x04服务没有开启!away可请管理员修改l4d2_rmc.cfg");
+        else
+        {
+            PrintToChat(client, "\x05[失败:]\x04服务没有开启!away可请管理员修改l4d2_rmc.cfg");
+        }
     }
     ChangeClientTeam(client, 1);
 }
@@ -358,7 +358,7 @@ public int Playernums()
     int i = 1;
     while (i <= MaxClients)
     {
-        if (IsClientInGame(i) && GetClientTeam(i) == 2)
+        if (IsClientInGame(i) && (GetClientTeam(i) == 1 || GetClientTeam(i) == 2))
         {
             numPlayers++;
         }
@@ -373,7 +373,7 @@ public int Survivors()
     int i = 1;
     while (i <= MaxClients)
     {
-        if (IsClientInGame(i) && (GetClientTeam(i) == 2 || GetClientTeam(i) == 1))
+        if (IsClientInGame(i) && GetClientTeam(i) == 2)
         {
             numSurvivors++;
         }
@@ -388,12 +388,9 @@ public int AliveSurvivors()
     int i = 1;
     while (i <= MaxClients)
     {
-        if (IsClientInGame(i) && GetClientTeam(i) == 2)
+        if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i))
         {
-            if (IsPlayerAlive(i))
-            {
-                numSurvivors++;
-            }
+            numSurvivors++;
         }
         i++;
     }
@@ -422,12 +419,9 @@ public int Humannums()
     int i = 1;
     while (i <= MaxClients)
     {
-        if (IsClientInGame(i))
+        if (IsClientConnected(i) && !IsFakeClient(i))
         {
-            if (!IsFakeClient(i))
-            {
-                numHuman++;
-            }
+            numHuman++;
         }
         i++;
     }
@@ -440,12 +434,9 @@ public int Botnums()
     int i = 1;
     while (i <= MaxClients)
     {
-        if (IsClientInGame(i))
+        if (IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == 2)
         {
-            if (IsFakeClient(i) && GetClientTeam(i) == 2)
-            {
-                numBots++;
-            }
+            numBots++;
         }
         i++;
     }
@@ -490,7 +481,7 @@ public int Gonaways()
 
 public Action Vserverinfo(int client, int args)
 {
-    PrintToChat(client, "\x05[提示]\x03 服务器包括电脑总人数 \x04[%i]\x03 非旁观活着的幸存者数量 \x04[%i]\x03 非电脑玩家数量 \x04[%i]\x03 观察者数量 \x04[%i]\x03 电脑总数量 \x04[%i]\x03 活着的电脑数量 \x04[%i]", Survivors(), AliveSurvivors(), Humannums(), Gonaways(), Botnums(), Alivebotnums());
+    PrintToChat(client, "\x05[提示]\x03 服务器幸存者数量 \x04[%i]\x03 活着的幸存者数量 \x04[%i]\x03 非电脑玩家数量 \x04[%i]\x03 观察者数量 \x04[%i]\x03 电脑总数量 \x04[%i]\x03 活着的电脑数量 \x04[%i]", Survivors(), AliveSurvivors(), Playernums(), Gonaways(), Botnums(), Alivebotnums());
     return Plugin_Handled;
 }
 
@@ -515,13 +506,10 @@ public Action RListLoadplayer(int client, int args)
     {
         if (IsClientInGame(i) && !IsFakeClient(i))
         {
-            if (IsClientInGame(i))
-            {
-                GetClientName(i, PlayerName, 64);
-                InGameCount++;
-                PrintToChatAll("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
-                PrintToServer("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
-            }
+            GetClientName(i, PlayerName, 64);
+            InGameCount++;
+            PrintToChatAll("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
+            PrintToServer("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
         }
         i++;
     }
@@ -538,14 +526,11 @@ public Action RListLoadplayer(int client, int args)
         i = 1;
         while (i <= MaxClients)
         {
-            if (!IsClientInGame(i) && !IsFakeClient(i))
+            if (IsClientConnected(i) && !IsClientInGame(i) && !IsFakeClient(i))
             {
-                if (IsClientInGame(i))
-                {
-                    GetClientName(i, PlayerName, 64);
-                    PrintToChatAll("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
-                    PrintToServer("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
-                }
+                GetClientName(i, PlayerName, 64);
+                PrintToChatAll("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
+                PrintToServer("\x05[%i]\x04 %s \x01ID: %i", InGameCount, PlayerName, i);
             }
             i++;
         }

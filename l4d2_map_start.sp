@@ -43,18 +43,24 @@ public void OnAllPluginsLoaded()
 
 public OnMapStart()
 {
+    ReloadPlugins();
     if (RestartTimer != INVALID_HANDLE){
         KillTimer(RestartTimer);
         RestartTimer = INVALID_HANDLE;
     }
     char mapName[256];
     GetCurrentMap(mapName, 256);
-    ServerCommand("sm plugins reload custom/info/l4d2_map_info");
     if (g_bLeft4DHooks && L4D_IsFirstMapInScenario() && mapName[0] != 'c' && !IsCharNumeric(mapName[1])){
         timeoutt = 0;
         PrintToServer("开始60秒重启倒计时");
         RestartTimer = CreateTimer(1.0, RestartAnnounce, _, TIMER_REPEAT);
     }
+}
+
+ReloadPlugins()
+{
+    ServerCommand("sm plugins reload custom/info/l4d2_map_info");
+    ServerCommand("sm plugins reload custom/others/l4d2_tank_melee_burn_control");
 }
 
 public Action MapStartStop(int client, int args)

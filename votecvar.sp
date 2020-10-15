@@ -14,9 +14,9 @@ public Plugin:myinfo =
 {
 	name = "投票更改服务器参数",
 	description = "",
-	author = "",
+	author = "BAKA",
 	version = "1.0",
-	url = ""
+	url = "baka.cirno.cn"
 };
 
 public void OnPluginStart()
@@ -24,6 +24,27 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_votecvar", Command_VoteCvar, "投票更改服务器参数");
 	RegServerCmd("sm_restore", Command_Restore, "恢复默认值");
 	RegAdminCmd("sm_vote_no", Command_VotesNo, ADMFLAG_ROOT, "管理员一键否决投票");
+}
+
+public GetCvarNum()
+{
+	char difficulty[20];
+	GetConVarString(FindConVar("z_difficulty"), difficulty, sizeof(difficulty));
+	if (StrEqual(difficulty, "Easy")
+		&& GetConVarFloat(FindConVar("survivor_friendly_fire_factor_easy")) > 0) FF = 1;
+	else if (StrEqual(difficulty, "Normal")
+		&& GetConVarFloat(FindConVar("survivor_friendly_fire_factor_normal")) > 0) FF = 1;
+	else if (StrEqual(difficulty, "Hard")
+		&& GetConVarFloat(FindConVar("survivor_friendly_fire_factor_hard")) > 0) FF = 1;
+	else if (StrEqual(difficulty, "Impossible")
+		&& GetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert")) > 0) FF = 1;
+	else FF = 0;
+	if (GetConVarInt(FindConVar("sm_teleport_enable")) == 0) TP = 0;
+	else TP = 1;
+	if (GetConVarInt(FindConVar("sm_health_enable")) == 0) HP = 0;
+	else HP = 1;
+	if (GetConVarInt(FindConVar("sm_auto_respawn")) == 0) FH = 0;
+	else FH = 1;
 }
 
 public Action Command_VoteCvar(int client, int args)
@@ -37,6 +58,7 @@ public Action CreateVoteCvarMenu(int client)
 	Handle menu = CreateMenu(SelectMenuHandler);
 	SetMenuTitle(menu, "选择您要投票更改的服务器参数:");
 	
+	GetCvarNum();
 	AddMenuItem(menu, "0", "恢复默认");
 	if (FF == 1) AddMenuItem(menu, "1", "[当前开启] 黑枪");
 	else AddMenuItem(menu, "1", "[当前关闭] 黑枪");
@@ -349,13 +371,13 @@ public SetFH()
 {
 	if (FH == 1)
 	{
-		SetConVarInt(FindConVar("sm_auto_respawn"), 2, false, false);
+		SetConVarInt(FindConVar("sm_auto_respawn"), 0, false, false);
 		FH = 0;
 		PrintToChatAll("自动复活已关闭");
 	}
 	else
 	{
-		SetConVarInt(FindConVar("sm_auto_respawn"), 0, false, false);
+		SetConVarInt(FindConVar("sm_auto_respawn"), 2, false, false);
 		FH = 1;
 		PrintToChatAll("自动复活已开启");
 	}

@@ -5008,11 +5008,11 @@ public Action:event_JockeyRelease(Handle:event, const String:name[], bool:dontBr
     if (Score > 0)
     {
       if (Mode == 1 || Mode == 2)
-        StatsPrintToChat(Rescuer, "You have earned \x04%i \x01points for saving \x05%s \x01from \x04%s\x01!", Score, VictimName, JockeyName);
+        StatsPrintToChat(Rescuer, "将\x05%s\x01从\x04%s\x01的控制下救出获得\x01\x04%i\x01分!", VictimName, JockeyName, Score);
       else if (Mode == 3)
       {
         GetClientName(Rescuer, RescuerName, sizeof(RescuerName));
-        StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for saving \x05%s \x01from \x04%s\x01!", RescuerName, Score, VictimName, JockeyName);
+        StatsPrintToChatAll("\x05%s\x01将\x05%s\x01从\x04%s\x01的控制下救出获得\x04%i\x01分!", RescuerName, VictimName, JockeyName, Score);
       }
     }
   }
@@ -5152,9 +5152,9 @@ public Action:event_ChargerKilled(Handle:event, const String:name[], bool:dontBr
         Format(VictimName, sizeof(VictimName), "a survivor");
 
       if (Mode == 1 || Mode == 2)
-        StatsPrintToChat(Killer, "You have earned \x04%i \x01points for saving %s from \x04%s\x01!", Score, VictimName, ChargerName);
+        StatsPrintToChat(Killer, "将\x05%s\x01从\x04%s\x01的控制下救出获得\x01\x04%i\x01分!", VictimName, ChargerName, Score);
       else if (Mode == 3)
-        StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for saving %s from \x04%s\x01!", KillerName, Score, VictimName, ChargerName);
+        StatsPrintToChatAll("\x05%s\x01将\x05%s\x01从\x04%s\x01的控制下救出获得\x01\x04%i\x01分!", KillerName, VictimName, ChargerName, Score);
     }
   }
 }
@@ -5780,7 +5780,7 @@ public Action:event_RevivePlayer(Handle:event, const String:name[], bool:dontBro
   if (Score > 0)
   {
     if (Mode == 1 || Mode == 2)
-      StatsPrintToChat(Savior, "You have earned \x04%i \x01points for Reviving \x05%s\x01!", Score, VictimName);
+      StatsPrintToChat(Savior, "救起\x05%s\x01获得\x04%i\x01分!", VictimName, Score);
     else if (Mode == 3)
       StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for Reviving \x05%s\x01!", SaviorName, Score, VictimName);
   }
@@ -5926,11 +5926,11 @@ public Action:event_Award_L4D1(Handle:event, const String:name[], bool:dontBroad
     {
       if (Mode == 1 || Mode == 2)
       {
-        StatsPrintToChat(User, "You have earned \x04%i \x01points for Rescuing \x05%s\x01!", Score, RecipientName);
+        StatsPrintToChat(User, "拯救\x05%s\x01获得\x04%i\x01分!", RecipientName, Score);
       }
       else if (Mode == 3)
       {
-        StatsPrintToChatAll("\x05%s \x01has earned \x04%i \x01points for Rescuing \x05%s\x01!", UserName, Score, RecipientName);
+        StatsPrintToChatAll("\x05%s\x01拯救\x05%s\x01获得\x04%i\x01分!", UserName, RecipientName, Score);
       }
     }
   }
@@ -9205,7 +9205,7 @@ HunterSmokerSave(Savior, Victim, BasePoints, AdvMult, ExpertMult, String:SaveFro
     return;
 
   if (Mode)
-    StatsPrintToChat(Savior, "You have earned \x04%i \x01points for saving \x05%s\x01 from \x04%s\x01!", Score, VictimName, SaveFrom);
+    StatsPrintToChat(Savior, "将\x05%s\x01从\x04%s\x01的控制下救出获得\x04%i\x01分!", VictimName, SaveFrom, Score);
 
   UpdateMapStat("points", Score);
   AddScore(Savior, Score);
@@ -11129,7 +11129,7 @@ public UpdateMapTimingStat(Handle:owner, Handle:hndl, const String:error[], any:
       if (Mode)
       {
         SetTimeLabel(TotalTime, TimeLabel, sizeof(TimeLabel));
-        StatsPrintToChat(Client, "你未能打破你完成这张地图的最快记录，记录更新:\x04%s\x01!", TimeLabel);
+        StatsPrintToChat(Client, "你打破了你完成这张地图的最快记录，记录更新:\x04%s\x01!", TimeLabel);
       }
 
       Format(query, sizeof(query), "UPDATE %stimedmaps SET plays = plays + 1, time = %f, players = %i, modified = NOW() WHERE map = '%s' AND gamemode = %i AND difficulty = %i AND mutation = '%s' AND steamid = '%s'", DbPrefix, TotalTime, PlayerCounter, MapName, GamemodeID, GameDifficulty, Mutation, ClientID);

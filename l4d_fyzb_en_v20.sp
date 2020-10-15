@@ -590,7 +590,7 @@ public Action:RoundStart(Handle:event, const String:name[], bool:dontBroadcast)
 		timer_handle=INVALID_HANDLE;
 	}
  
-	timer_handle=CreateTimer(GetConVarFloat(l4d_fyzb_showtime), Msg, 0, TIMER_REPEAT);
+	if (Enabled) timer_handle=CreateTimer(GetConVarFloat(l4d_fyzb_showtime), Msg, 0, TIMER_REPEAT);
 	return Plugin_Continue;
 }
  

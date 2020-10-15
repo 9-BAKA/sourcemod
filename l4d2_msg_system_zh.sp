@@ -68,7 +68,10 @@ public HealSuccess(Handle:event, String:name[], bool:dontBroadcast)
 		{
 			PrintToChatAll("%s\x04%s \x03治疗了自己", "\x05[提示]\x03 ", PName1);
 		}
-		PrintToChatAll("%s\x04%s \x03治疗了\x04 %s\x03", "\x05[提示]\x03 ", PName1, PName2);
+		else
+		{
+			PrintToChatAll("%s\x04%s \x03治疗了\x04 %s\x03", "\x05[提示]\x03 ", PName1, PName2);
+		}
 	}
 	return 0;
 }

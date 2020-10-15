@@ -15,9 +15,11 @@ new Handle:Forward1 = INVALID_HANDLE;
 new Handle:Forward2 = INVALID_HANDLE;
 
 //melee check
-#define MAX_MELEE_LENGTH 13
+#define MAX_MELEE_LENGTH 15
 new String:meleelist[MAX_MELEE_LENGTH][20] =
 {
+	"shovel",
+	"pitchfork",
 	"cricket_bat",
 	"crowbar",
 	"baseball_bat",
@@ -88,6 +90,8 @@ new Handle:PointsPropane = INVALID_HANDLE;
 new Handle:PointsGnome = INVALID_HANDLE;
 new Handle:PointsCola = INVALID_HANDLE;
 new Handle:PointsFireWorks = INVALID_HANDLE;
+new Handle:PointsShovel = INVALID_HANDLE;
+new Handle:PointsPitchfork = INVALID_HANDLE;
 new Handle:PointsBat = INVALID_HANDLE;
 new Handle:PointsMachete = INVALID_HANDLE;
 new Handle:PointsKatana = INVALID_HANDLE;
@@ -240,6 +244,8 @@ public OnPluginStart()
 	PointsGnome = CreateConVar("l4d2_points_gnome", "8", "How many points the gnome costs", 0);
 	PointsCola = CreateConVar("l4d2_points_cola", "8", "How many points cola bottles costs", 0);
 	PointsFireWorks = CreateConVar("l4d2_points_fireworks", "2", "How many points the fireworks crate costs", 0);
+	PointsShovel = CreateConVar("l4d2_points_shovel", "6", "How many points the shovel costs", 0);
+	PointsPitchfork = CreateConVar("l4d2_points_pitchfork", "6", "How many points the pitchfork costs", 0);
 	PointsBat = CreateConVar("l4d2_points_bat", "4", "How many points the baseball bat costs", 0);
 	PointsMachete = CreateConVar("l4d2_points_machete", "6", "How many points the machete costs", 0);
 	PointsKatana = CreateConVar("l4d2_points_katana", "6", "How many points the katana costs", 0);
@@ -442,6 +448,8 @@ public OnMapStart()
 	PrecacheModel("models/infected/common_male_roadcrew.mdl", true);
 	PrecacheModel("models/infected/common_male_fallen_survivor.mdl", true);
 	PrecacheModel("models/weapons/melee/w_riotshield.mdl", true);
+	PrecacheModel("models/weapons/melee/w_pitchfork.mdl", true);
+	PrecacheModel("models/weapons/melee/w_shovel.mdl", true);
 	GetCurrentMap(MapName, sizeof(MapName));
 	CreateTimer(6.0, CheckMelee, _, TIMER_FLAG_NO_MAPCHANGE);
 }	
@@ -1562,55 +1570,63 @@ BuildMeleeMenu(client)
 		{
 			continue;
 		}	
-		if(i == 0 && GetConVarInt(PointsCBat) < 0)
+		if(i == 0 && GetConVarInt(PointsShovel) < 0)
 		{
 			continue;
 		}	
-		else if(i == 1 && GetConVarInt(PointsCrow) < 0)
+		if(i == 1 && GetConVarInt(PointsPitchfork) < 0)
 		{
 			continue;
 		}	
-		else if(i == 2 && GetConVarInt(PointsBat) < 0)
+		if(i == 2 && GetConVarInt(PointsCBat) < 0)
 		{
 			continue;
 		}	
-		else if(i == 3 && GetConVarInt(PointsGuitar) < 0)
+		else if(i == 3 && GetConVarInt(PointsCrow) < 0)
 		{
 			continue;
 		}	
-		else if(i == 4 && GetConVarInt(PointsFireaxe) < 0)
+		else if(i == 4 && GetConVarInt(PointsBat) < 0)
 		{
 			continue;
 		}	
-		else if(i == 5 && GetConVarInt(PointsKatana) < 0)
+		else if(i == 5 && GetConVarInt(PointsGuitar) < 0)
 		{
 			continue;
 		}	
-		else if(i == 6 && GetConVarInt(PointsKnife) < 0)
+		else if(i == 6 && GetConVarInt(PointsFireaxe) < 0)
 		{
 			continue;
 		}	
-		else if(i == 7 && GetConVarInt(PointsTonfa) < 0)
+		else if(i == 7 && GetConVarInt(PointsKatana) < 0)
 		{
 			continue;
 		}	
-		else if(i == 8 && GetConVarInt(PointsClub) < 0)
+		else if(i == 8 && GetConVarInt(PointsKnife) < 0)
 		{
 			continue;
 		}	
-		else if(i == 9 && GetConVarInt(PointsMachete) < 0)
+		else if(i == 9 && GetConVarInt(PointsTonfa) < 0)
 		{
 			continue;
 		}	
-		else if(i == 10 && GetConVarInt(PointsPan) < 0)
+		else if(i == 10 && GetConVarInt(PointsClub) < 0)
+		{
+			continue;
+		}	
+		else if(i == 11 && GetConVarInt(PointsMachete) < 0)
+		{
+			continue;
+		}	
+		else if(i == 12 && GetConVarInt(PointsPan) < 0)
 		{
 			continue;
 		}		
-		else if(i == 11 && GetConVarInt(PointsKnife) < 0)
+		else if(i == 13 && GetConVarInt(PointsKnife) < 0)
 		{
 			continue;
 		}		
-		else if(i == 12 && GetConVarInt(PointsShield) < 0)
+		else if(i == 14 && GetConVarInt(PointsShield) < 0)
 		{
 			continue;
 		}	
@@ -1926,7 +1942,17 @@ public MenuHandler_Melee(Handle:menu, MenuAction:action, param1, param2)
 		{
 			new String:item1[56];
 			GetMenuItem(menu, param2, item1, sizeof(item1));
-			if(StrEqual(item1, "crowbar", false))
+			if(StrEqual(item1, "shovel", false))
+			{
+				item[param1] = "give shovel";
+				cost[param1] = GetConVarInt(PointsShovel);
+			}
+			else if(StrEqual(item1, "pitchfork", false))
+			{
+				item[param1] = "give pitchfork";
+				cost[param1] = GetConVarInt(PointsPitchfork);
+			}
+			else if(StrEqual(item1, "crowbar", false))
 			{
 				item[param1] = "give crowbar";
 				cost[param1] = GetConVarInt(PointsCrow);

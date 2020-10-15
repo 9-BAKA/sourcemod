@@ -91,11 +91,11 @@ public Action SetPara(int client, int args)
 		ServerCommand("sm_ontui");
 		ServerCommand("sm_on141");
 		ServerCommand("sm_mmn 4");
-		ServerCommand("sm_it 5");
+		ServerCommand("sm_it 0");
 		ServerCommand("sm_onzc");
-		ServerCommand("sm_onammo");
+		ServerCommand("sm_onammo1");
 		ServerCheatCommand("z_difficulty Impossible");
-		SetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert"), 0.1, false, false);
+		SetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert"), 0.0, false, false);
 		PrintToChatAll("恢复参数一");
 		PrintToServer("恢复参数一");
 	}

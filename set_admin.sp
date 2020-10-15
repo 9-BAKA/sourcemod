@@ -171,7 +171,7 @@ public bool IsInBlackList(client)
     PrintToServer(steam_id);
     while (ReadFileLine(file, buffer, 256))
     {
-        PrintToServer(buffer);
+        // PrintToServer(buffer);
         if (strcmp(steam_id, buffer) == 0)
         {
             PrintToServer("True");

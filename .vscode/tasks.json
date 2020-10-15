@@ -9,8 +9,8 @@
             "command": ".\\spcomp.exe",
             "args": [
                 "'${file}'",
-                "-i=.\\include",
-                "-D=.\\compiled",
+                "-i=include",
+                "-D=compiled",
             ],
             "group": {
                 "kind": "build",

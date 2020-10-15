@@ -86,18 +86,18 @@ public Action SetPara(int client, int args)
 	PrintToServer("设置参数");
 	if (args == 0)
 	{
-		// ServerCommand("sm_onhx");
+		ServerCommand("sm_onhx");
 		ServerCommand("sm_onhw");
 		ServerCommand("sm_ontui");
 		ServerCommand("sm_on141");
-		ServerCommand("sm_mmn 2");
-		// ServerCommand("sm_it 5");
+		ServerCommand("sm_mmn 4");
+		ServerCommand("sm_it 0");
 		ServerCommand("sm_onzc");
-		ServerCommand("sm_onammo");
-		// ServerCheatCommand("z_difficulty Impossible");
-		// SetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert"), 0.1, false, false);
-		PrintToChatAll("恢复参数零");
-		PrintToServer("恢复参数零");
+		ServerCommand("sm_onammo1");
+		ServerCheatCommand("z_difficulty Impossible");
+		SetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert"), 0.0, false, false);
+		PrintToChatAll("恢复参数一");
+		PrintToServer("恢复参数一");
 	}
 	else
 	{
@@ -105,22 +105,6 @@ public Action SetPara(int client, int args)
 		GetCmdArg(1, arg, sizeof(arg));
 		int num = StringToInt(arg, 10);
 		PrintToServer("%d", num);
-
-		if (num == 1)
-		{
-			ServerCommand("sm_onhx");
-			ServerCommand("sm_onhw");
-			ServerCommand("sm_ontui");
-			ServerCommand("sm_on141");
-			ServerCommand("sm_mmn 4");
-			ServerCommand("sm_it 5");
-			ServerCommand("sm_onzc");
-			ServerCommand("sm_onammo");
-			ServerCheatCommand("z_difficulty Impossible");
-			SetConVarFloat(FindConVar("survivor_friendly_fire_factor_expert"), 0.1, false, false);
-			PrintToChatAll("恢复参数一");
-			PrintToServer("恢复参数一");
-		}
 	}
 }
 

@@ -1604,7 +1604,7 @@ public OnMapStart()
 	if (!RAScheck)
 	{
 		R_AutoIS_T = GetConVarInt(hR_AutoIS_T);
-		if (R_AutoIS_T < 0 || R_AutoIS_T > 2)
+		if (R_AutoIS_T < 0 || R_AutoIS_T > 3)
 		{
 			R_AutoIS_T = 0;
 		}
@@ -1616,7 +1616,7 @@ public OnMapStart()
 		{
 			Rs14Infectedon2();
 		}
-		if (R_AutoIS_T == 2)
+		if (R_AutoIS_T == 3)
 		{
 			Rs14Infectedon3();
 		}

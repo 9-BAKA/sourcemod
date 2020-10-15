@@ -130,6 +130,8 @@ DisplaySMMenu(client)
 	SetMenuTitle(menu, "手枪及近战");
 	AddMenuItem(menu, "pistol", "小手枪", 0);
 	AddMenuItem(menu, "pistol_magnum", "马格南", 0);
+	AddMenuItem(menu, "shovel", "铲子", 0);
+	AddMenuItem(menu, "pitchfork", "干草叉", 0);
 	AddMenuItem(menu, "knife", "小刀", 0);
 	AddMenuItem(menu, "machete", "砍刀", 0);
 	AddMenuItem(menu, "katana", "日本刀", 0);
@@ -529,15 +531,22 @@ public NLMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 		userids = StringToInt(clientinfos, 10);
 		if (StrEqual(clientinfos, "allplayer", true))
 		{
-			new ix = 1;
-			while (ix <= MaxClients)
+			if (StrEqual(giveorder, "give health"))
 			{
-				if (IsClientInGame(ix) && GetClientTeam(ix) == 2 && IsPlayerAlive(ix))
+				CreateTimer(0.04, GiveHealthAll, 1);
+			}
+			else
+			{
+				new ix = 1;
+				while (ix <= MaxClients)
 				{
-					FakeClientCommand(ix, giveorder);
-					// PrintToChatAll("%N", ix);
+					if (IsClientInGame(ix) && GetClientTeam(ix) == 2 && IsPlayerAlive(ix))
+					{
+						FakeClientCommand(ix, giveorder);
+						// PrintToChatAll("%N", ix);
+					}
+					ix++;
 				}
-				ix++;
 			}
 		}
 		else
@@ -548,6 +557,54 @@ public NLMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 		SetCommandFlags("upgrade_add", flagsup | 16384);
 	}
 	return 0;
+}
+
+public Action GiveHealthAll(Handle timer, int client)
+{
+	if (client > MAXPLAYERS) return Plugin_Stop;
+	while (client <= 32)
+	{
+		if (IsClientInGame(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client))
+		{
+			if (!IsPlayerIncapped(client) && !IsPlayerGrapEdge(client))
+			{
+				GiveHealth(client);
+				client += 1;
+			}
+			else
+			{
+				GiveHealth(client);
+				client += 1;
+				CreateTimer(0.04, GiveHealthAll, client);
+				break;
+			}
+		}
+		else
+		{
+			client += 1;
+		}
+	}
+	return Plugin_Continue;
+}
+
+bool:IsPlayerIncapped(client)
+{
+	if (GetEntProp(client, Prop_Send, "m_isIncapacitated", 1)) return true;
+ 	return false;
+}
+bool:IsPlayerGrapEdge(client)
+{
+ 	if (GetEntProp(client, Prop_Send, "m_isHangingFromLedge", 1))return true;
+	return false;
+}
+
+GiveHealth(client)
+{
+	// PrintToChatAll("%s: %d", giveorder, client)
+	new flagsgv = GetCommandFlags("give");
+	SetCommandFlags("give", flagsgv & -16385);
+	FakeClientCommand(client, giveorder);
+	SetCommandFlags("give", flagsgv | 16384);
 }
 
 DisplayRPMenu(client)
@@ -600,6 +657,10 @@ public RPMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 						{
 							SDKCall(hRoundRespawn, ix);
 							TeleportEntity(ix, vOrigin1, vAngles1, NULL_VECTOR);
+							new flagsgv = GetCommandFlags("give");
+							SetCommandFlags("give", flagsgv & -16385);
+							FakeClientCommand(ix, "give smg_silenced");
+							SetCommandFlags("give", flagsgv | 16384);
 						}
 						ix++;
 					}
@@ -608,6 +669,10 @@ public RPMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				{
 					SDKCall(hRoundRespawn, userids);
 					TeleportEntity(userids, vOrigin1, vAngles1, NULL_VECTOR);
+					new flagsgv = GetCommandFlags("give");
+					SetCommandFlags("give", flagsgv & -16385);
+					FakeClientCommand(userids, "give smg_silenced");
+					SetCommandFlags("give", flagsgv | 16384);
 				}
 			}
 			i++;

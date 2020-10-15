@@ -2,6 +2,7 @@
 
 #include <sourcemod>
 #include <sdktools>
+#include <colors>
 #undef REQUIRE_PLUGIN
 #define SCORE_DELAY_EMPTY_SERVER 3.0
 #define ZOMBIECLASS_SMOKER 1
@@ -402,7 +403,8 @@ CreateVotekickMenu(client)
 	new Handle:menu = CreateMenu(Menu_Voteskick);		
 	new String:name[MAX_NAME_LENGTH];
 	new String:playerid[32];
-	PrintToChat(client, "警告！恶意踢人将导致被服务器封禁！");
+	CPrintToChat(client, "{default}[{red}!!警告!!{default}] {olive}恶意踢人将导致被服务器封禁！");
+	CPrintToChat(client, "{default}[{red}!!警告!!{default}] {olive}输入 {green}!hint {olive}以查看服务器守则.");
 	SetMenuTitle(menu, "选择踢出玩家");
 	for(new i = 1;i <= MaxClients; i++)
 	{

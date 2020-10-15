@@ -29,6 +29,9 @@ new IncapType[MAXPLAYERS+1];
 new Handle:Timers[MAXPLAYERS+1];
 
 new Float:HelpStartTime[MAXPLAYERS+1];
+
+new SwitchTeamId;
+new TakeOverId;
   
 new Handle:l4d_selfhelp_delay = INVALID_HANDLE;
 new Handle:l4d_selfhelp_hintdelay = INVALID_HANDLE;
@@ -89,7 +92,10 @@ public OnPluginStart()
 	HookEvent("player_ledge_grab", player_ledge_grab);
 
 	HookEvent("round_start", RoundStart);
-  	 
+
+	HookEvent("player_disconnect", Event_PlayerDisconnect);
+	HookEvent("player_team", EventPlayerTeam);
+
 	if(L4D2Version)
 	{
 		HookEvent("jockey_ride", jockey_ride);
@@ -975,3 +981,85 @@ public Action:sm_ht(client, args)
 	else PrintToChatAll("onwer %d, target %d", o, t);
 }
 */
+public Action:Event_PlayerDisconnect(Handle:event, String:strName[], bool:bDontBroadcast)
+{
+	int client = GetClientOfUserId(GetEventInt(event, "userid", 0));
+	if (client != 0 && IsClientInGame(client)) 
+	{
+		// 玩家加入幸存者时，电脑会先进入观察者，再离开幸存者，同时提供断开原因（实际只需判断其中一个就行）
+		if (IsFakeClient(client) && GetClientTeam(client))
+		{
+			char disconnectReason[64];
+			GetEventString(event, "reason", disconnectReason, sizeof(disconnectReason)); 
+			if(StrEqual(disconnectReason, "Kicked by Console : survivor bot left the survivor team"))
+			{
+				TakeOverId = client;
+				InheritData();
+			}
+		}
+		// 玩家离开游戏
+		else
+		{
+			TakeOverId = client;
+		}
+	}
+	return Action:0;
+}
+public Action EventPlayerTeam(Event event, const char[] name, bool dontBroadcast)  // 玩家更换队伍(加入幸存者)
+{
+	int client = GetClientOfUserId(GetEventInt(event, "userid", 0));
+	if (client != 0)
+	{
+		// 玩家更换队伍
+		if (!IsFakeClient(client))
+		{
+			// 玩家加入幸存者
+			if (GetClientTeam(client) != 2)
+			{
+				SwitchTeamId = client;
+			}
+			// 玩家从幸存者离开
+			else
+			{
+				TakeOverId = client;
+			}
+		}
+		// 电脑更换队伍
+		else
+		{
+			CreateTimer(0.1, CheckClientTeam, client);
+			// 由于无法直接获取变换后的队伍，故设置一个0.1秒的计时器，如果0.1秒内有多个玩家更换队伍，会导致混乱，但不过也只是这次无法自救而已。
+		}
+	}
+	return Action:0;
+}
+public Action CheckClientTeam(Handle timer, any client)
+{
+	if (IsClientInGame(client) && IsFakeClient(client) && GetClientTeam(client) == 2)
+	{
+		SwitchTeamId = client;
+		InheritData();
+	}
+}
+InheritData()
+{
+	// 取消注释这两行以获取debug输出
+	// PrintToChatAll("更换者：%N, 接管对象：%N", SwitchTeamId, TakeOverId);
+	// PrintToChatAll("接管对象攻击者：%d, 接管对象被控类型：%d", Attacker[TakeOverId], IncapType[TakeOverId]);
+	Attacker[SwitchTeamId] = Attacker[TakeOverId];
+	IncapType[SwitchTeamId] = IncapType[TakeOverId];
+	HelpOhterState[SwitchTeamId]=HelpState[SwitchTeamId]=STATE_NONE;
+	Attacker[TakeOverId] = 0;
+	IncapType[TakeOverId] = 0;
+	// 其他状态在原PlayerTimer计时器中会自动消除，无需干预
+	if ((IncapType[SwitchTeamId] == INCAP && GetConVarInt(l4d_selfhelp_incap) > 0)
+		|| (IncapType[SwitchTeamId] == INCAP_GRAB && GetConVarInt(l4d_selfhelp_grab) > 0)
+		|| (IncapType[SwitchTeamId] == INCAP_POUNCE && GetConVarInt(l4d_selfhelp_pounce) > 0)
+		|| (IncapType[SwitchTeamId] == INCAP_RIDE && GetConVarInt(l4d_selfhelp_ride) > 0)
+		|| (IncapType[SwitchTeamId] == INCAP_PUMMEL && GetConVarInt(l4d_selfhelp_pummel) > 0)
+		|| (IncapType[SwitchTeamId] == INCAP_EDGEGRAB && GetConVarInt(l4d_selfhelp_edgegrab) > 0))
+	{
+		CreateTimer(GetConVarFloat(l4d_selfhelp_delay), WatchPlayer, SwitchTeamId);	
+		CreateTimer(GetConVarFloat(l4d_selfhelp_hintdelay), AdvertisePills, SwitchTeamId);
+	}
+}
