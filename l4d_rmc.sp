@@ -29,19 +29,21 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
     CreateConVar("L4D2_Multiplayer_RMC_version", "1.1", "L4D2多人游戏设置");
-    RegConsoleCmd("sm_jg", Jointhegame);
-    RegConsoleCmd("sm_join", Jointhegame);
-    RegConsoleCmd("sm_joingame", Jointhegame);
-    RegConsoleCmd("sm_away", Gotoaway);
-    RegConsoleCmd("sm_diannao", CreateOneBot);
-    RegConsoleCmd("sm_addbot", CreateOneBot);
-    RegConsoleCmd("sm_sinfo", Vserverinfo);
-    RegConsoleCmd("sm_bd", Bindkeyhots);
-    RegConsoleCmd("sm_rhelp", Scdescription);
-    RegConsoleCmd("sm_kb", Kbcheck);
-    RegConsoleCmd("sm_sp", RListLoadplayer);
-    RegConsoleCmd("sm_zs", Rzhisha);
-    RegAdminCmd("sm_set", Numsetcheck, ADMFLAG_ROOT);
+    RegConsoleCmd("sm_jg", Jointhegame, "加入幸存者");
+    RegConsoleCmd("sm_join", Jointhegame, "加入幸存者");
+    RegConsoleCmd("sm_joingame", Jointhegame, "加入幸存者");
+    RegConsoleCmd("sm_away", Gotoaway, "闲置到观察者");
+    RegConsoleCmd("sm_away2", Gotoaway2, "使用电脑托管");
+    RegConsoleCmd("sm_diannao", CreateOneBot, "增加电脑");
+    RegConsoleCmd("sm_addbot", CreateOneBot, "增加电脑");
+    RegConsoleCmd("sm_sinfo", Vserverinfo, "获取服务器人数信息");
+    RegConsoleCmd("sm_bd", Bindkeyhots, "绑定基础按键");
+    RegConsoleCmd("sm_rhelp", Scdescription, "显示帮助信息");
+    RegConsoleCmd("sm_kb", Kbcheck, "踢出所有电脑");
+    RegConsoleCmd("sm_kb2", Kbcheck2, "将所有闲置玩家转入观察者");
+    RegConsoleCmd("sm_sp", RListLoadplayer, "列出玩家加载状态");
+    RegConsoleCmd("sm_zs", Rzhisha, "自杀");
+    RegAdminCmd("sm_set", Numsetcheck, ADMFLAG_ROOT, "设置服务器人数");
 
     HookEvent("round_start", Event_rmcRoundStart, EventHookMode_Post);
     HookEvent("player_team", Event_rmcteam, EventHookMode_Pre);
@@ -82,6 +84,11 @@ public void OnMapStart()
             usermnums = 1;
         }
     }
+}
+
+public void OnMapEnd()
+{
+    ServerCommand("sm_kb2");
 }
 
 public void CVARChanged(Handle hCvar, const char[] sOldVal, const char[] sNewVal)
@@ -275,6 +282,31 @@ public Action Kbcheck(int client, int args)
     //return Plugin_Handled;
 }
 
+public Action Kbcheck2(int client, int args)
+{
+    int ix = 1;
+    while (ix <= MaxClients)
+    {
+        if (IsClientInGame(ix))
+        {
+            if (!IsFakeClient(ix) && GetClientTeam(ix) == 1)
+            {
+                ClientCommand(ix, "jointeam 1");
+                CreateTimer(0.1, DelaySpec, ix);
+                PrintToChatAll("\x05[提示]\x03 将所有闲置玩家转入观察者.");
+            }
+        }
+        ix++;
+    }
+    PrintToChatAll("\x05[提示]\x03 将所有闲置玩家转入观察者.");
+    return Plugin_Handled;
+}
+
+public Action DelaySpec(Handle timer, int client)
+{
+    ClientCommand(client, "jointeam 2");
+}
+
 public Action Numsetcheck(int client, int args)
 {
     if (GetUserFlagBits(client))
@@ -349,7 +381,29 @@ public Action Gotoaway(int client, int argCount)
             PrintToChat(client, "\x05[失败:]\x04服务没有开启!away可请管理员修改l4d2_rmc.cfg");
         }
     }
-    ChangeClientTeam(client, 1);
+    else
+    {
+        ChangeClientTeam(client, 1);
+    }
+}
+
+public Action Gotoaway2(int client, int argCount)
+{
+    if (AwayCEnable)
+    {
+        if (GetUserFlagBits(client))
+        {
+            ClientCommand(client, "go_away_from_keyboard");
+        }
+        else
+        {
+            PrintToChat(client, "\x05[失败:]\x04服务没有开启!away2可请管理员修改l4d2_rmc.cfg");
+        }
+    }
+    else
+    {
+        ClientCommand(client, "go_away_from_keyboard");
+    }
 }
 
 public int Playernums()
@@ -546,14 +600,14 @@ public Action CreateOneBot(int client, int agrs)
 public int LCreateOneBot(int client)
 {
     PrintToServer("创造一个电脑");
-    int playernum = 0;
+    int survivorsnum = 0;
     int specnum = 0;
     int botnum = 0;
-    playernum = Playernums();
+    survivorsnum = Survivors();
     specnum = Gonaways();
     botnum = Botnums();
     KickEnable = GetConVarBool(hKickEnable);
-    if (!KickEnable || botnum < specnum || playernum < 4)
+    if (!KickEnable || botnum < specnum || survivorsnum < 4)
     {
         int survivorbot = CreateFakeClient("survivor bot");
         DispatchKeyValue(survivorbot, "classname", "SurvivorBot");

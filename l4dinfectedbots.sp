@@ -105,6 +105,8 @@ static Handle:hOA_AIS;
 new Handle:hRIFADDNUMS;
 new Handle:hR_AutoIS_T;
 
+new Handle:NumCheckTimer;
+
 int RIFADDNUMS;
 int baseNum;
 int R_AutoIS_T;
@@ -1516,14 +1518,37 @@ canSpawnCharger = true;
 
 }
 */
-public Action:evtPlayerTeam(Handle:event, const String:name[], bool:dontBroadcast)
+public Action evtPlayerTeam(Event event, char[] name, bool dontBroadcast)
 {
 	// If player is a bot, we ignore this ...
-	if (GetEventBool(event, "isbot")) return Plugin_Continue;
+	// if (GetEventBool(event, "isbot")) return Plugin_Continue;
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (IsFakeClient(client))
+	{
+		// PrintToServer("电脑切换队伍");
+		return Plugin_Continue;
+	}
 	
 	// We get some data needed ...
 	new newteam = GetEventInt(event, "team");
 	new oldteam = GetEventInt(event, "oldteam");
+
+	if (R14Enabled && IFADDEnabled)
+	{
+		if (NumCheckTimer != INVALID_HANDLE)
+		{
+			KillTimer(NumCheckTimer);
+			NumCheckTimer = INVALID_HANDLE;
+		}
+		if (newteam == 2)
+		{
+			CreateTimer(5.0, ADDIFNUMCHECKSD, any:2, 0);
+		}
+		else
+		{
+			CreateTimer(5.0, ADDIFNUMCHECKSD, any:1, 0);
+		}
+	}
 	
 	// If player's new/old team is infected, we recount the infected and add bots if needed ...
 	if (!b_HasRoundEnded && b_LeftSaveRoom && GameMode == 2)
@@ -1590,7 +1615,12 @@ public OnClientDisconnect(client)
 
 	if (R14Enabled && IFADDEnabled)
 	{
-		CreateTimer(3.0, ADDIFNUMCHECKSD, any:2, 0);
+		if (NumCheckTimer != INVALID_HANDLE)
+		{
+			KillTimer(NumCheckTimer);
+			NumCheckTimer = INVALID_HANDLE;
+		}
+		CreateTimer(3.0, ADDIFNUMCHECKSD, any:1, 0);
 	}
 	
 }
@@ -2312,6 +2342,11 @@ Rs14Infectedon2()
 	IFADDEnabled = true;
 	R14Enabled = true;
 	baseNum = 4;
+	if (NumCheckTimer != INVALID_HANDLE)
+	{
+		KillTimer(NumCheckTimer);
+		NumCheckTimer = INVALID_HANDLE;
+	}
 	CreateTimer(0.1, ADDIFNUMCHECKSD, any:3, 0);
 	return 0;
 }
@@ -2332,6 +2367,11 @@ Rs14Infectedon3()
 	IFADDEnabled = true;
 	R14Enabled = true;
 	baseNum = 0;
+	if (NumCheckTimer != INVALID_HANDLE)
+	{
+		KillTimer(NumCheckTimer);
+		NumCheckTimer = INVALID_HANDLE;
+	}
 	CreateTimer(0.1, ADDIFNUMCHECKSD, any:3, 0);
 	return 0;
 }
@@ -2412,6 +2452,11 @@ public rIFADDNumMMNMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 		RIFADDNUMS = R14userids;
 		if (R14Enabled && IFADDEnabled)
 		{
+			if (NumCheckTimer != INVALID_HANDLE)
+			{
+				KillTimer(NumCheckTimer);
+				NumCheckTimer = INVALID_HANDLE;
+			}
 			CreateTimer(1.0, ADDIFNUMCHECKSD, any:0, 0);
 		}
 	}
@@ -2452,6 +2497,11 @@ public Action:Event_RIFPlayerAct(Handle:event, String:name[], bool:dontBroadcast
 	{
 		if (R14Enabled && IFADDEnabled)
 		{
+			if (NumCheckTimer != INVALID_HANDLE)
+			{
+				KillTimer(NumCheckTimer);
+				NumCheckTimer = INVALID_HANDLE;
+			}
 			CreateTimer(3.0, ADDIFNUMCHECKSD, any:2, 0);
 		}
 	}
@@ -2525,7 +2575,7 @@ public Action:ADDIFNUMCHECKSD(Handle:timer, any:Rflag)
 		new i = 1;
 		while (i <= MaxClients)
 		{
-			if (IsClientInGame(i) && GetClientTeam(i) <= 2 && !IsFakeClient(i))
+			if (IsClientInGame(i) && !IsFakeClient(i) && GetClientTeam(i) == 2)
 			{
 				num14Players++;
 			}
@@ -2558,20 +2608,29 @@ public Action:ADDIFNUMCHECKSD(Handle:timer, any:Rflag)
 		MaxPlayerZombies = GetConVarInt(h_MaxPlayerZombies);
 		SetSpawnLimits();
 	}
-	if (Rflag == 3)
+	switch (Rflag)
 	{
-		PrintToChatAll("\x04[!警告!]\x05开启了\x04\x04%d\x01\x05特模式按人数增加,最少\x04\x04%d\x01\x05特,每增加一名幸存者增加\x04\x04%d\x01\x05特,关闭请输入!off14", MaxPlayerZombies, baseNum, RIFADDNUMS);
-	}
-	else
-	{
-		if (timer_handle != null)
+		case 0:
 		{
-			KillTimer(timer_handle);
-			timer_handle = null;
+			PrintToChatAll("\x04[!提示!]\x05 特感数量增加,现在是\x03 \x04%d\x05 特.", MaxPlayerZombies);
 		}
-		timer_handle = CreateTimer(1.0, Announce_Delay, Rflag);
-		return Action:0;
+		case 1:
+		{
+			PrintToChatAll("\x04[!提示!]\x05 -幸存者减少了,特感数量现在是\x03 \x04%d\x05 特.", MaxPlayerZombies);
+		}
+		case 2:
+		{
+			PrintToChatAll("\x04[!提示!]\x05 +幸存者增加了,特感数量现在是\x03 \x04%d\x05 特.", MaxPlayerZombies);
+		}
+		case 3:
+		{
+			PrintToChatAll("\x04[!警告!]\x05开启了\x04\x04%d\x01\x05特模式按人数增加,最少\x04\x04%d\x01\x05特,每增加一名幸存者增加\x04\x04%d\x01\x05特,关闭请输入!off14", MaxPlayerZombies, baseNum, RIFADDNUMS);
+		}
+		default:
+		{
+		}
 	}
+	NumCheckTimer = INVALID_HANDLE;
 	return Action:0;
 }
 
@@ -2581,15 +2640,15 @@ public Action:Announce_Delay(Handle:timer, any:Rflag)
 	{
 		case 0:
 		{
-			PrintToChatAll("\x04[!提示!]\x05 特感数量增加现在是\x03 \x04%d\x01 特.", MaxPlayerZombies);
+			PrintToChatAll("\x04[!提示!]\x05 特感数量增加,现在是\x03 \x04%d\x05 特.", MaxPlayerZombies);
 		}
 		case 1:
 		{
-			PrintToChatAll("\x04[!提示!]\x05 -幸存者减少了,特感数量现在是\x03 \x04%d\x01 特.", MaxPlayerZombies);
+			PrintToChatAll("\x04[!提示!]\x05 -幸存者减少了,特感数量现在是\x03 \x04%d\x05 特.", MaxPlayerZombies);
 		}
 		case 2:
 		{
-			PrintToChatAll("\x04[!提示!]\x05 +幸存者增加了,特感数量现在是\x03 \x04%d\x01 特.", MaxPlayerZombies);
+			PrintToChatAll("\x04[!提示!]\x05 +幸存者增加了,特感数量现在是\x03 \x04%d\x05 特.", MaxPlayerZombies);
 		}
 		default:
 		{

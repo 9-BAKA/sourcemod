@@ -1,0 +1,50 @@
+﻿"Phrases"
+{
+	//Chat items
+	"DL_Ready"
+	{
+		"en"			"%s 已准备"
+	}
+	"DL_Unready"
+	{
+		"en"			"%s 取消准备"
+	}
+	"DL_Moveout"
+	{
+		"en"			"开始奔放的求生之旅"
+	}
+	"DL_Locked"
+	{
+		"en"			"安全门锁定中等待: %i 秒"
+	}
+	"DL_Frozen"
+	{
+		"en"			"已锁定，请等待: %is"
+	}
+	
+	//Menu items
+	"DL_Menu_Header"
+	{
+		"en"			"----- 玩家加载动态 -----"
+	}
+	"DL_Menu_Connecting"
+	{
+		"en"			"连接中"
+	}
+	"DL_Menu_Ingame"
+	{
+		"en"			"游戏中"
+	}
+	"DL_Menu_Fail"
+	{
+		"en"			"失败"
+	}
+	"DL_Menu_Ready"
+	{
+		"en"			"准备"
+	}
+	"DL_Menu_Unready"
+	{
+		"en"			"取消准备"
+	}
+}

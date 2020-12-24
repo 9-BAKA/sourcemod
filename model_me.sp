@@ -20,6 +20,8 @@ float ang[66][3];
 bool rolled[66];
 bool sift[66];
 bool Stopped[66];
+bool ModelCopyed[MAXPLAYERS+1];
+char ModelCopy[MAXPLAYERS+1][256];
 
 public Plugin:myinfo =
 {
@@ -39,11 +41,13 @@ public OnPluginStart()
 	g_cvarDecorative = CreateConVar("l4d2_spawn_props_category_decorative", "1", "Enable the Decorative category", 0);
 	g_cvarMisc = CreateConVar("l4d2_spawn_props_category_misc", "1", "Enable the Misc category", 0);
 
-	RegAdminCmd("sm_modme", Command_modme, 32, "", "", 0);
-	RegAdminCmd("sm_modse", Command_modse, 32, "", "", 0);
-	RegAdminCmd("sm_modra", Command_modra, 32, "", "", 0);
-	RegAdminCmd("sm_stop", Command_stop, 32, "", "", 0);
-	RegAdminCmd("sm_refresh", Command_refresh, 32, "", "", 0);
+	RegAdminCmd("sm_modme", Command_modme, 32, "把自己变成准星处物体", "", 0);
+	RegAdminCmd("sm_modse", Command_modse, 32, "选择想要变成的物体", "", 0);
+	RegAdminCmd("sm_modra", Command_modra, 32, "随机变成物体", "", 0);
+	RegAdminCmd("sm_stop", Command_stop, 32, "使自己静止", "", 0);
+	RegAdminCmd("sm_refresh", Command_refresh, 32, "刷新状态（暂时无用）", "", 0);
+	RegAdminCmd("sm_copy", Command_copy, 32, "复制实体模型", "", 0);
+	RegAdminCmd("sm_paste", Command_paste, 32, "粘贴实体模型", "", 0);
 
 	PrecacheSound("ui/littlereward.wav", true);
 	PrecacheSound("level/gnomeftw.wav", true);
@@ -51,6 +55,12 @@ public OnPluginStart()
 	PrecacheSound("buttons/button14.wav", true);
 
 	GetModelNames();
+}
+
+public bool OnClientConnect(int client, char[] rejectmsg, int maxlen)
+{
+	ModelCopyed[client] = false;
+	return true;
 }
 
 public void GetModelNames()
@@ -93,6 +103,39 @@ public void GetModelNames()
 		}
 		ModelNum += 1;
 	}
+}
+
+public Action:Command_copy(client, args)
+{
+	new Ent = GetClientAimTarget(client, false);
+	if (IsValidEntity(Ent))
+	{
+		decl String:modelname[128];
+		GetEntPropString(Ent, PropType:1, "m_ModelName", modelname, 128, 0);
+		ModelCopyed[client] = true;
+		ModelCopy[client] = modelname;
+		PrintToChat(client, "\x04[model]\x05 已复制准星处的实体信息:\x01 %s", modelname);
+	}
+	else
+	{
+		PrintToChat(client, "\x04[model]\x05 准星处找不到实体.");
+	}
+	return Action:0;
+}
+
+public Action:Command_paste(client, args)
+{
+	new Ent = GetClientAimTarget(client, false);
+	if (IsValidEntity(Ent))
+	{
+		SetEntityModel(Ent, ModelCopy[client]);
+		PrintToChat(client, "\x04[model]\x05 把准星处的实体变成:\x01 %s", ModelCopy[client]);
+	}
+	else
+	{
+		PrintToChat(client, "\x04[model]\x05 准星处找不到实体.");
+	}
+	return Action:0;
 }
 
 public Action:Command_modme(client, args)

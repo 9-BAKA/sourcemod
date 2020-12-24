@@ -544,62 +544,52 @@ public Action:Award(Client)
 	{
 		if (prize1[Client] == 1)
 		{
-			//new i = 1;
-			//while (i <= MaxClients)
-			//{
-			//	if (IsClientInGame(i))
-			//	{
-			//		if (GetClientTeam(i) == 2)
-			//		{
-			//			new MaxHP = GetEntProp(i, PropType:1, "m_iMaxHealth", 4, 0);
-			//			SetEntProp(i, PropType:1, "m_iHealth", MaxHP, 4, 0);
-			//		}
-			//	}
-			//	i++;
-			//}
 			new MaxHP = GetEntProp(Client, PropType:1, "m_iMaxHealth", 4, 0);
 			SetEntProp(Client, PropType:1, "m_iHealth", MaxHP, 4, 0);
 			Format(hd, 64, "将自己加满HP");
 		}
-		else
+		if (prize1[Client] == 2)
 		{
-			if (prize1[Client] == 2)
+			CheatCommand(Client, "ent_remove_all", "infected");
+			Format(hd, 64, "清除所有小僵尸");
+		}
+		if (prize1[Client] == 3)
+		{
+			SetEntProp(Client, PropType:1, "m_takedamage", any:0, 1, 0);
+			if (GodTime[Client] != INVALID_HANDLE)
 			{
-				CheatCommand(Client, "ent_remove_all", "infected");
-				Format(hd, 64, "清除所有小僵尸");
+				KillTimer(GodTime[Client], false);
+				GodTime[Client] = INVALID_HANDLE;
 			}
-			if (prize1[Client] == 3)
+			GodTime[Client] = CreateTimer(30.0, ResetGodmod, Client);
+			Format(hd, 64, "他自己进入无敌状态30秒");
+		}
+		if (prize1[Client] == 4)
+		{
+			SetEntityGravity(Client, 0.2);
+			if (GravityTime[Client] != INVALID_HANDLE)
 			{
-				SetEntProp(Client, PropType:1, "m_takedamage", any:0, 1, 0);
-				if (GodTime[Client])
-					KillTimer(GodTime[Client], false);
-				GodTime[Client] = CreateTimer(30.0, ResetGodmod, Client);
-				Format(hd, 64, "他自己进入无敌状态30秒");
+				KillTimer(GravityTime[Client], false);
+				GravityTime[Client] = INVALID_HANDLE;
 			}
-			if (prize1[Client] == 4)
+			GravityTime[Client] = CreateTimer(30.0, ResetGravity, Client);
+			Format(hd, 64, "他自己的重力降低30秒");
+		}
+		if (prize1[Client] == 5)
+		{
+			new i = 1;
+			while (i <= MaxClients)
 			{
-				SetEntityGravity(Client, 0.2);
-				if (GravityTime[Client])
-					KillTimer(GravityTime[Client], false);
-				GravityTime[Client] = CreateTimer(30.0, ResetGravity, Client);
-				Format(hd, 64, "他自己的重力降低30秒");
-			}
-			if (prize1[Client] == 5)
-			{
-				new i = 1;
-				while (i <= MaxClients)
+				if (IsClientInGame(i))
 				{
-					if (IsClientInGame(i))
+					if (GetClientTeam(i) == 3)
 					{
-						if (GetClientTeam(i) == 3)
-						{
-							ForcePlayerSuicide(i);
-						}
+						ForcePlayerSuicide(i);
 					}
-					i++;
 				}
-				Format(hd, 64, "处死所有特感");
+				i++;
 			}
+			Format(hd, 64, "处死所有特感");
 		}
 		Format(ms, 32, "特等奖");
 		PrintToChatAll("\x03玩家\x04%N\x03抽到了\x01%s \x05→ \x02%s", Client, ms, hd);
@@ -613,63 +603,60 @@ public Action:Award(Client)
 			CheatCommand(Client, "give", "rifle");
 			Format(hd, 32, "获得M16");
 		}
-		else
+		if (prize2[Client] == 2)
 		{
-			if (prize2[Client] == 2)
-			{
-				CheatCommand(Client, "give", "rifle_ak47");
-				Format(hd, 32, "获得AK47");
-			}
-			if (prize2[Client] == 3)
-			{
-				CheatCommand(Client, "give", "sniper_military");
-				Format(hd, 32, "获得大型连狙");
-			}
-			if (prize2[Client] == 4)
-			{
-				CheatCommand(Client, "give", "hunting_rifle");
-				Format(hd, 32, "获得小型连狙");
-			}
-			if (prize2[Client] == 5)
-			{
-				CheatCommand(Client, "give", "autoshotgun");
-				Format(hd, 32, "获得自动散弹枪");
-			}
-			if (prize2[Client] == 6)
-			{
-				CheatCommand(Client, "give", "shotgun_spas");
-				Format(hd, 32, "获得spas战斗散弹枪");
-			}
-			if (prize2[Client] == 7)
-			{
-				CheatCommand(Client, "give", "shotgun_chrome");
-				Format(hd, 32, "获得铬合金散弹枪");
-			}
-			if (prize2[Client] == 8)
-			{
-				CheatCommand(Client, "give", "pumpshotgun");
-				Format(hd, 32, "获得泵动式散弹枪");
-			}
-			if (prize2[Client] == 9)
-			{
-				CheatCommand(Client, "give", " rifle_desert");
-				Format(hd, 32, "获得突击步枪");
-			}
-			if (prize2[Client] == 10)
-			{
-				CheatCommand(Client, "give", "grenade_launcher");
-				Format(hd, 32, "获得榴弹枪");
-			}
-			if (prize2[Client] == 11)
-			{
-				CheatCommand(Client, "give", "smg");
-				Format(hd, 32, "获得乌兹小冲锋");
-			}
-			if (prize2[Client] == 12)
-			{
-				CheatCommand(Client, "give", "smg_silenced");
-				Format(hd, 32, "获得消音小冲锋");
-			}
+			CheatCommand(Client, "give", "rifle_ak47");
+			Format(hd, 32, "获得AK47");
+		}
+		if (prize2[Client] == 3)
+		{
+			CheatCommand(Client, "give", "sniper_military");
+			Format(hd, 32, "获得大型连狙");
+		}
+		if (prize2[Client] == 4)
+		{
+			CheatCommand(Client, "give", "hunting_rifle");
+			Format(hd, 32, "获得小型连狙");
+		}
+		if (prize2[Client] == 5)
+		{
+			CheatCommand(Client, "give", "autoshotgun");
+			Format(hd, 32, "获得自动散弹枪");
+		}
+		if (prize2[Client] == 6)
+		{
+			CheatCommand(Client, "give", "shotgun_spas");
+			Format(hd, 32, "获得spas战斗散弹枪");
+		}
+		if (prize2[Client] == 7)
+		{
+			CheatCommand(Client, "give", "shotgun_chrome");
+			Format(hd, 32, "获得铬合金散弹枪");
+		}
+		if (prize2[Client] == 8)
+		{
+			CheatCommand(Client, "give", "pumpshotgun");
+			Format(hd, 32, "获得泵动式散弹枪");
+		}
+		if (prize2[Client] == 9)
+		{
+			CheatCommand(Client, "give", " rifle_desert");
+			Format(hd, 32, "获得突击步枪");
+		}
+		if (prize2[Client] == 10)
+		{
+			CheatCommand(Client, "give", "grenade_launcher");
+			Format(hd, 32, "获得榴弹枪");
+		}
+		if (prize2[Client] == 11)
+		{
+			CheatCommand(Client, "give", "smg");
+			Format(hd, 32, "获得乌兹小冲锋");
+		}
+		if (prize2[Client] == 12)
+		{
+			CheatCommand(Client, "give", "smg_silenced");
+			Format(hd, 32, "获得消音小冲锋");
 		}
 		Format(ms, 32, "一等奖");
 		PrintToChat(Client, "\x04你抽中了\x01%s \x05→ \x02%s", ms, hd);
@@ -683,23 +670,20 @@ public Action:Award(Client)
 			CheatCommand(Client, "give", "first_aid_kit");
 			Format(hd, 32, "获得医药包");
 		}
-		else
+		if (prize3[Client] == 2)
 		{
-			if (prize3[Client] == 2)
-			{
-				CheatCommand(Client, "give", "pain_pills");
-				Format(hd, 32, "获得止痛药");
-			}
-			if (prize3[Client] == 3)
-			{
-				CheatCommand(Client, "give", "adrenaline");
-				Format(hd, 32, "获得肾上腺素");
-			}
-			if (prize3[Client] == 4)
-			{
-				CheatCommand(Client, "give", "defibrillator");
-				Format(hd, 32, "获得电击器");
-			}
+			CheatCommand(Client, "give", "pain_pills");
+			Format(hd, 32, "获得止痛药");
+		}
+		if (prize3[Client] == 3)
+		{
+			CheatCommand(Client, "give", "adrenaline");
+			Format(hd, 32, "获得肾上腺素");
+		}
+		if (prize3[Client] == 4)
+		{
+			CheatCommand(Client, "give", "defibrillator");
+			Format(hd, 32, "获得电击器");
 		}
 		Format(ms, 32, "二等奖");
 		PrintToChat(Client, "\x04你抽中了\x01%s \x05→ \x02%s", ms, hd);
@@ -713,33 +697,30 @@ public Action:Award(Client)
 			CheatCommand(Client, "give", "pistol_magnum");
 			Format(hd, 32, "获得马格南手枪");
 		}
-		else
+		if (prize4[Client] == 2)
 		{
-			if (prize4[Client] == 2)
-			{
-				CheatCommand(Client, "give", "baseball_bat");
-				Format(hd, 32, "获得棒球棒");
-			}
-			if (prize4[Client] == 3)
-			{
-				CheatCommand(Client, "give", "pipe_bomb");
-				Format(hd, 32, "获得土制炸弹");
-			}
-			if (prize4[Client] == 4)
-			{
-				CheatCommand(Client, "give", "molotov");
-				Format(hd, 32, "获得燃烧瓶");
-			}
-			if (prize4[Client] == 5)
-			{
-				CheatCommand(Client, "give", "vomitjar");
-				Format(hd, 32, "获得胆汁炸弹");
-			}
-			if (prize4[Client] == 6)
-			{
-				CheatCommand(Client, "give", "chainsaw");
-				Format(hd, 32, "获得电锯");
-			}
+			CheatCommand(Client, "give", "baseball_bat");
+			Format(hd, 32, "获得棒球棒");
+		}
+		if (prize4[Client] == 3)
+		{
+			CheatCommand(Client, "give", "pipe_bomb");
+			Format(hd, 32, "获得土制炸弹");
+		}
+		if (prize4[Client] == 4)
+		{
+			CheatCommand(Client, "give", "molotov");
+			Format(hd, 32, "获得燃烧瓶");
+		}
+		if (prize4[Client] == 5)
+		{
+			CheatCommand(Client, "give", "vomitjar");
+			Format(hd, 32, "获得胆汁炸弹");
+		}
+		if (prize4[Client] == 6)
+		{
+			CheatCommand(Client, "give", "chainsaw");
+			Format(hd, 32, "获得电锯");
 		}
 		Format(ms, 32, "三等奖");
 		PrintToChat(Client, "\x04你抽中了\x01%s \x05→ \x02%s", ms, hd);
@@ -753,28 +734,25 @@ public Action:Award(Client)
 			CheatCommand(Client, "give", "upgradepack_incendiary");
 			Format(hd, 32, "获得燃烧弹盒");
 		}
-		else
+		if (prize5[Client] == 2)
 		{
-			if (prize5[Client] == 2)
-			{
-				CheatCommand(Client, "give", "upgradepack_explosive");
-				Format(hd, 32, "获得高爆弹盒");
-			}
-			if (prize5[Client] == 3)
-			{
-				CheatCommand(Client, "give", "propanetank");
-				Format(hd, 32, "获得煤气罐");
-			}
-			if (prize5[Client] == 4)
-			{
-				CheatCommand(Client, "give", "gascan");
-				Format(hd, 32, "获得汽油桶");
-			}
-			if (prize5[Client] == 5)
-			{
-				CheatCommand(Client, "give", "oxygentank");
-				Format(hd, 32, "获得氧气罐");
-			}
+			CheatCommand(Client, "give", "upgradepack_explosive");
+			Format(hd, 32, "获得高爆弹盒");
+		}
+		if (prize5[Client] == 3)
+		{
+			CheatCommand(Client, "give", "propanetank");
+			Format(hd, 32, "获得煤气罐");
+		}
+		if (prize5[Client] == 4)
+		{
+			CheatCommand(Client, "give", "gascan");
+			Format(hd, 32, "获得汽油桶");
+		}
+		if (prize5[Client] == 5)
+		{
+			CheatCommand(Client, "give", "oxygentank");
+			Format(hd, 32, "获得氧气罐");
 		}
 		Format(ms, 32, "安慰奖");
 		PrintToChat(Client, "\x04你抽中了\x01%s \x05→ \x02%s", ms, hd);
@@ -789,29 +767,26 @@ public Action:Award(Client)
 			CheatCommand(Client, "z_spawn", "witch");
 			Format(hd, 32, "召唤两只Witch");
 		}
-		else
+		if (prize6[Client] == 2)
 		{
-			if (prize6[Client] == 2)
-			{
-				CheatCommand(Client, "z_spawn", "tank");
-				Format(hd, 32, "召唤一只Tank");
-			}
-			if (prize6[Client] == 3)
-			{
-				// ForcePlayerSuicide(Client);
-				Format(hd, 32, "自杀!!!");
-			}
-			if (prize6[Client] == 4)
-			{
-				CheatCommand(Client, "z_spawn", "mob");
-				CheatCommand(Client, "z_spawn", "mob");
-				Format(hd, 32, "召唤尸潮!");
-			}
-			if (prize6[Client] == 5)
-			{
-				ServerCommand("sm_freeze \"%N\" \"%d\"", Client, 10);
-				Format(hd, 32, "被冰冻10秒");
-			}
+			CheatCommand(Client, "z_spawn", "tank");
+			Format(hd, 32, "召唤一只Tank");
+		}
+		if (prize6[Client] == 3)
+		{
+			// ForcePlayerSuicide(Client);
+			Format(hd, 32, "自杀!!!");
+		}
+		if (prize6[Client] == 4)
+		{
+			CheatCommand(Client, "z_spawn", "mob");
+			CheatCommand(Client, "z_spawn", "mob");
+			Format(hd, 32, "召唤尸潮!");
+		}
+		if (prize6[Client] == 5)
+		{
+			ServerCommand("sm_freeze \"%N\" \"%d\"", Client, 10);
+			Format(hd, 32, "被冰冻10秒");
 		}
 		Format(ms, 32, "惩罚");
 		PrintToChatAll("\x03玩家\x04%N\x03抽到了\x01%s \x05→ \x02%s", Client, ms, hd);
@@ -827,6 +802,11 @@ public Action:ResetGodmod(Handle:timer, any:Client)
 		SetEntProp(Client, Prop_Data, "m_takedamage", 2, 1);
 		PrintToChat(Client, "\x02无敌状态结束");
 	}
+	if (GodTime[Client] != INVALID_HANDLE)
+	{
+		KillTimer(GodTime[Client], false);
+		GodTime[Client] = INVALID_HANDLE;
+	}
 	return Action:0;
 }
 
@@ -836,6 +816,11 @@ public Action:ResetGravity(Handle:timer, any:Client)
 	{
 		SetEntityGravity(Client, 1.0);
 		PrintToChat(Client, "\x02低重力状态结束");
+	}
+	if (GravityTime[Client] != INVALID_HANDLE)
+	{
+		KillTimer(GravityTime[Client], false);
+		GravityTime[Client] = INVALID_HANDLE;
 	}
 	return Action:0;
 }

@@ -3,7 +3,7 @@
 
 public Plugin myinfo =
 {
-	name = "获取及设置管理员权限",
+	name = "模板",
 	description = "",
 	author = "BAKA",
 	version = "1.0",

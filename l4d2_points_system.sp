@@ -1,6 +1,7 @@
 #pragma semicolon 1
 #include <sourcemod>
 #include <sdktools>
+#include <sdkhooks>
 
 #define PLUGIN_TITLE "1.6.9 Dimitte"
 
@@ -119,6 +120,11 @@ new Handle:PointsIAmmoPack = INVALID_HANDLE;
 new Handle:PointsLSight = INVALID_HANDLE;
 new Handle:PointsRefill = INVALID_HANDLE;
 new Handle:PointsHeal = INVALID_HANDLE;
+
+static Handle:hRoundRespawn = INVALID_HANDLE;
+static Handle:hGameConf = INVALID_HANDLE;
+new Handle:PointsRespawn = INVALID_HANDLE;
+new Handle:PointsAmmoPile = INVALID_HANDLE;
 //Survivor point earning things
 new Handle:SValueKillingSpree = INVALID_HANDLE;
 new Handle:SNumberKill = INVALID_HANDLE;
@@ -219,6 +225,7 @@ public OnPluginStart()
 	TankLimit = CreateConVar("l4d2_points_tank_limit", "2", "How many tanks to be allowed spawned per team", 0);
 	WitchLimit = CreateConVar("l4d2_points_witch_limit", "3", "How many witchs' to be allwed spawned per team", 0);
 	SpawnTries = CreateConVar("l4d2_points_spawn_tries", "2", "How many times to attempt respawning when buying an special infected", 0);
+
 	PointsPistol = CreateConVar("l4d2_points_pistol", "4", "How many points the pistol costs", 0);
 	PointsSMG = CreateConVar("l4d2_points_smg", "7", "How many points the smg costs", 0);
 	PointsM16 = CreateConVar("l4d2_points_m16", "12", "How many points the m16 costs", 0);
@@ -272,6 +279,10 @@ public OnPluginStart()
 	PointsIAmmoPack = CreateConVar("l4d2_points_incendiary_ammo_pack", "15", "How many points the incendiary ammo pack costs", 0);
 	PointsLSight = CreateConVar("l4d2_points_laser", "10", "How many points the laser sight costs", 0);
 	PointsHeal = CreateConVar("l4d2_points_survivor_heal", "25", "How many points a complete heal costs", 0);
+
+	PointsRespawn = CreateConVar("l4d2_points_survivor_respawn", "50", "How many points respawn costs", 0);
+	PointsAmmoPile = CreateConVar("l4d2_points_ammo_pile", "20", "How many points ammo pile costs", 0);
+
 	PointsRefill = CreateConVar("l4d2_points_refill", "8", "How many points an ammo refill costs", 0);
 	SValueKillingSpree = CreateConVar("l4d2_points_cikill_value", "2", "How many points does killing a certain amount of infected earn", 0);
 	SNumberKill = CreateConVar("l4d2_points_cikills", "25", "How many kills you need to earn a killing spree bounty", 0);
@@ -300,6 +311,7 @@ public OnPluginStart()
 	IIncap = CreateConVar("l4d2_points_incap", "3", "How many points does incapping a survivor earn", 0);
 	IHurt = CreateConVar("l4d2_points_damage", "2", "How many points does doing damage earn", 0);
 	IKill = CreateConVar("l4d2_points_kill", "5", "How many points does killing a survivor earn", 0);
+
 	PointsSuicide = CreateConVar("l4d2_points_suicide", "4", "How many points does suicide cost", 0);
 	PointsHunter = CreateConVar("l4d2_points_hunter", "4", "How many points does a hunter cost", 0);
 	PointsJockey = CreateConVar("l4d2_points_jockey", "6", "How many points does a jockey cost", 0);
@@ -314,6 +326,7 @@ public OnPluginStart()
 	PointsHorde = CreateConVar("l4d2_points_horde", "15", "How many points does a horde cost", 0);
 	PointsMob = CreateConVar("l4d2_points_mob", "10", "How many points does a mob cost", 0);
 	PointsUMob = CreateConVar("l4d2_points_umob", "12", "How many points does an uncommon mob cost", 0);
+
 	CatRifles = CreateConVar("l4d2_points_cat_rifles", "1", "Enable rifles catergory", 0);
 	CatSMG = CreateConVar("l4d2_points_cat_smg", "1", "Enable smg catergory", 0);
 	CatSnipers = CreateConVar("l4d2_points_cat_snipers", "1", "Enable snipers catergory", 0);
@@ -324,6 +337,7 @@ public OnPluginStart()
 	CatMisc = CreateConVar("l4d2_points_cat_misc", "1", "Enable misc catergory", 0);
 	CatMelee = CreateConVar("l4d2_points_cat_melee", "1", "Enable melee catergory", 0);
 	CatWeapons = CreateConVar("l4d2_points_cat_weapons", "1", "Enable weapons catergory", 0);
+
 	RegConsoleCmd("sm_buystuff", BuyMenu, "Open the buy menu (only in-game)");
 	RegAdminCmd("sm_listmodules", ListModules, ADMFLAG_GENERIC, "List modules currently loaded to Points System");
 	RegConsoleCmd("sm_buy", BuyMenu, "Open the buy menu (only in-game)");
@@ -358,6 +372,11 @@ public OnPluginStart()
 	SendProp_IsGhost = FindSendPropInfo("CTerrorPlayer", "m_isGhost");
 	AutoExecConfig(true, "l4d2_points_system");
 	if(!lateload) CreateTimer(0.5, PrecacheGuns);
+	hGameConf = LoadGameConfigFile("l4drespawn");
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "RoundRespawn");
+	hRoundRespawn = EndPrepSDKCall();
+	if (hRoundRespawn == INVALID_HANDLE) SetFailState("L4D_SM_Respawn: RoundRespawn Signature broken");
 }	
 
 public bool:FilterSurvivors(const String:pattern[], Handle:clients)
@@ -450,6 +469,7 @@ public OnMapStart()
 	PrecacheModel("models/weapons/melee/w_riotshield.mdl", true);
 	PrecacheModel("models/weapons/melee/w_pitchfork.mdl", true);
 	PrecacheModel("models/weapons/melee/w_shovel.mdl", true);
+	PrecacheModel("models/props/terror/ammo_stack.mdl", true);
 	GetCurrentMap(MapName, sizeof(MapName));
 	CreateTimer(6.0, CheckMelee, _, TIMER_FLAG_NO_MAPCHANGE);
 }	
@@ -1761,7 +1781,8 @@ BuildSMGMenu(client)
 
 BuildHealthMenu(client)
 {
-	decl String:adrenaline[40], String:defibrillator[40], String:first_aid_kit[40], String:pain_pills[40], String:health[40], String:title[40]; 
+	decl String:adrenaline[40], String:defibrillator[40], String:first_aid_kit[40], String:pain_pills[40];
+	decl String:health[40],  String:respawn[40], String:title[40]; 
 	new Handle:menu = CreateMenu(MenuHandler_Health);
 	if(GetConVarInt(PointsKit) > -1)
 	{
@@ -1787,6 +1808,11 @@ BuildHealthMenu(client)
 	{
 		Format(health, sizeof(health), "%T", "Full Heal", LANG_SERVER);
 		AddMenuItem(menu, "health", health);
+	}
+	if(GetConVarInt(PointsRespawn) > -1)
+	{
+		Format(respawn, sizeof(respawn), "%T", "Respawn", LANG_SERVER);
+		AddMenuItem(menu, "respawn", respawn);
 	}
 	Format(title, sizeof(title),"%T", "Points Left", LANG_SERVER, points[client]);
 	SetMenuTitle(menu, title);
@@ -1886,6 +1912,7 @@ BuildUpgradesMenu(client)
 {
 	decl String:upgradepack_explosive[40], String:upgradepack_incendiary[40], String:title[40];
 	decl String:laser_sight[40], String:explosive_ammo[40], String:incendiary_ammo[40], String:ammo[40];
+	decl String:ammo_pile[40];
 	new Handle:menu = CreateMenu(MenuHandler_Upgrades);
 	if(GetConVarInt(PointsLSight) > -1)
 	{
@@ -1916,6 +1943,11 @@ BuildUpgradesMenu(client)
 	{
 		Format(ammo, sizeof(ammo), "%T", "Ammo", LANG_SERVER);
 		AddMenuItem(menu, "ammo", ammo);
+	}
+	if(GetConVarInt(PointsAmmoPile) > -1)
+	{
+		Format(ammo_pile, sizeof(ammo_pile), "%T", "Ammo Pile", LANG_SERVER);
+		AddMenuItem(menu, "ammo_pile", ammo_pile);
 	}
 	Format(title, sizeof(title),"%T", "Points Left", LANG_SERVER, points[client]);
 	SetMenuTitle(menu, title);
@@ -2355,6 +2387,11 @@ public MenuHandler_Health(Handle:menu, MenuAction:action, param1, param2)
 				item[param1] = "give health";
 				cost[param1] = GetConVarInt(PointsHeal);
 			}
+			else if(StrEqual(item1, "respawn", false))
+			{
+				item[param1] = "respawn";
+				cost[param1] = GetConVarInt(PointsRespawn);
+			}
 			DisplayConfirmMenuHealth(param1);
 		}
 	}
@@ -2408,6 +2445,11 @@ public MenuHandler_Upgrades(Handle:menu, MenuAction:action, param1, param2)
 			{
 				item[param1] = "give ammo";
 				cost[param1] = GetConVarInt(PointsRefill);
+			}
+			else if(StrEqual(item1, "ammo_pile", false))
+			{
+				item[param1] = "spawn ammo_pile";
+				cost[param1] = GetConVarInt(PointsAmmoPile);
 			}
 			DisplayConfirmMenuUpgrades(param1);
 		}
@@ -3050,6 +3092,20 @@ public MenuHandler_ConfirmHealth(Handle:menu, MenuAction:action, param1, param2)
 					SetEntPropFloat(param1, Prop_Send, "m_healthBuffer", 0.0);
 					AddFlags();
 				}	
+				else if(StrEqual(item[param1], "respawn", false))
+				{
+					if (IsPlayerAlive(param1))
+					{
+						PrintToChat(param1,  "%T", "You Are Alive", LANG_SERVER);
+					}
+					else
+					{
+						strcopy(bought[param1], sizeof(bought), item[param1]);
+						boughtcost[param1] = cost[param1];
+						points[param1] -= cost[param1];
+						Respawn(param1);
+					}
+				}	
 				else
 				{	
 					strcopy(bought[param1], sizeof(bought), item[param1]);
@@ -3134,6 +3190,17 @@ public MenuHandler_ConfirmUpgrades(Handle:menu, MenuAction:action, param1, param
 					else FakeClientCommand(param1, item[param1]);
 					AddFlags();
 				}	
+				else if (StrEqual(item[param1], "spawn ammo_pile", false))
+				{
+					strcopy(bought[param1], sizeof(bought), item[param1]);
+					boughtcost[param1] = cost[param1];
+					points[param1] -= cost[param1];
+					new Float:location[3];
+					if (!Misc_TraceClientViewToLocation(param1, location)) {
+						GetClientAbsOrigin(param1, location);
+					}
+					Do_CreateEntity(param1, "weapon_ammo_spawn", "models/props/terror/ammo_stack.mdl", location, false);
+				}
 				else
 				{
 					strcopy(bought[param1], sizeof(bought), item[param1]);
@@ -3294,4 +3361,110 @@ stock SetPlayerAlive(client, bool:alive)
 stock SetPlayerGhost(client, bool:ghost)
 {
 	SetEntData(client, SendProp_IsGhost, ghost, 1);
+}
+
+bool:Misc_TraceClientViewToLocation(client, Float:location[3]) {
+	new Float:vAngles[3], Float:vOrigin[3];
+	GetClientEyePosition(client,vOrigin);
+	GetClientEyeAngles(client, vAngles);
+	// PrintToChatAll("Running Code %f %f %f | %f %f %f", vOrigin[0], vOrigin[1], vOrigin[2], vAngles[0], vAngles[1], vAngles[2]);
+	new Handle:trace = TR_TraceRayFilterEx(vOrigin, vAngles, MASK_PLAYERSOLID, RayType_Infinite, TraceRayDontHitSelf, client);
+	if(TR_DidHit(trace)) {
+		TR_GetEndPosition(location, trace);
+		CloseHandle(trace);
+		// PrintToChatAll("Collision at %f %f %f", location[0], location[1], location[2]);
+		return true;
+	}
+	CloseHandle(trace);
+	return false;
+}
+
+Do_CreateEntity(client, const String:name[], const String:model[], Float:location[3], const bool:zombie) {
+	new entity = CreateEntityByName(name);
+	if (StrEqual(model, "PROVIDED") == false)
+		SetEntityModel(entity, model);
+	DispatchSpawn(entity);
+	if (zombie) {
+		new ticktime = RoundToNearest(GetGameTime() / GetTickInterval()) + 5;
+		SetEntProp(zombie, Prop_Data, "m_nNextThinkTick", ticktime);
+		location[2] -= 25.0; // reduce the 'drop' effect
+	}
+	// Starts animation on whatever we spawned - necessary for mobs
+	ActivateEntity(entity);
+	// Teleport the entity to the client's crosshair
+	TeleportEntity(entity, location, NULL_VECTOR, NULL_VECTOR);
+	LogAction(client, -1, "[NOTICE]: (%L) has buy a %s (%s)", client, name, model);
+}
+
+public bool:TraceRayDontHitSelf(entity, mask, any:data)
+{
+	if(entity == data) 
+	{
+		return false; 
+	}
+	return true;
+}
+
+Respawn(client)
+{
+	if (IsClientInGame(client))
+	{
+		if (IsPlayerAlive(client))
+		{
+			return;
+		}
+		if (GetClientTeam(client) != 2) // 如果玩家在复活过程中闲置了，则救起一个电脑
+		{
+			for (int i = 1; i < MaxClients; i++)
+			{
+				if (IsFakeClient(client) && !IsPlayerAlive(client))
+				{
+					client = i;
+					break;
+				}
+			}
+		}
+		if (client == MaxClients) return;
+		SDKCall(hRoundRespawn, client);
+
+		SetHealth(client);
+		GiveItems(client);
+		TeleportBot(client);
+	}
+}
+
+SetHealth(client)
+{
+	new sBonusHP = 100;
+	SetEntProp(client, PropType:0, "m_iHealth", sBonusHP, 1, 0);
+	SetEntDataFloat(client, 100, 100.0, true);
+	return 0;
+}
+
+GiveItems(int client)
+{
+	new flags = GetCommandFlags("give");
+	SetCommandFlags("give", flags & -16385);
+	FakeClientCommand(client, "give smg_silenced");
+	FakeClientCommand(client, "give knife");
+	SetCommandFlags("give", flags | 16384);
+	return 0;
+}
+
+TeleportBot(int client)
+{
+	int i = 1;
+	while (i <= MaxClients)
+	{
+		if (IsClientInGame(i) && GetClientTeam(i) == 2 && IsPlayerAlive(i) && i != client)
+		{
+			float vAngles1[3];
+			float vOrigin1[3];
+			GetClientAbsOrigin(i, vOrigin1);
+			GetClientAbsAngles(i, vAngles1);
+			TeleportEntity(client, vOrigin1, vAngles1, NULL_VECTOR);
+			break;
+		}
+		i++;
+	}
 }

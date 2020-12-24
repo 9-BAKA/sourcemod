@@ -161,6 +161,7 @@ public bool IsInBlackList(client)
     char FileName[256];
     char buffer[32];
     char steam_id[32];
+    int len;
     BuildPath(PathType:0, FileName, 256, "data/admin_blacklist.txt");
     if (!FileExists(FileName, false))
     {
@@ -168,13 +169,22 @@ public bool IsInBlackList(client)
     }
     file = OpenFile(FileName, "r");
     GetClientAuthId(client, AuthIdType:1, steam_id, 32, true);
-    PrintToServer(steam_id);
+    // PrintToServer(steam_id);
     while (ReadFileLine(file, buffer, 256))
     {
+        len = strlen(buffer);
+        if (buffer[len-1] == '\n')
+        {
+            buffer[len-1] = '\0';
+        }
+        if (buffer[len-2] == '\r')
+        {
+            buffer[len-2] = '\0';
+        }
         // PrintToServer(buffer);
         if (strcmp(steam_id, buffer) == 0)
         {
-            PrintToServer("True");
+            PrintToServer("黑名单玩家");
             return true;
         }
     }
